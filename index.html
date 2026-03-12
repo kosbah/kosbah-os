@@ -221,10 +221,54 @@ main{padding:14px;max-width:880px;margin:0 auto;display:flex;flex-direction:colu
 .qtext strong{color:var(--primary);}
 .qtags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
 .qtag{font-size:10px;padding:2px 8px;border-radius:20px;background:var(--pdim);border:1px solid var(--pborder);color:var(--primary);}
+/* ─── LOGIN SCREEN ───────────────────────────────────────── */
+#login-screen{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100vh;background:var(--bg);padding:24px;text-align:center;
+}
+#login-screen .login-brand{
+  font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;
+  color:var(--primary);margin-bottom:6px;
+}
+#login-screen .login-title{
+  font-size:28px;font-weight:900;color:var(--text);margin-bottom:4px;
+}
+#login-screen .login-sub{
+  font-size:13px;color:var(--muted);margin-bottom:32px;
+}
+#login-screen .google-btn{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:14px 32px;border:none;border-radius:12px;
+  background:var(--primary);color:#0F172A;
+  font-size:15px;font-weight:800;cursor:pointer;
+  transition:opacity .15s,transform .1s;
+  box-shadow:0 0 20px rgba(245,158,11,.25);
+}
+#login-screen .google-btn:hover{opacity:.9;}
+#login-screen .google-btn:active{transform:scale(.97);}
+#login-screen .google-btn svg{width:20px;height:20px;}
+#app{display:none;}
 </style>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
+<!-- ══ LOGIN SCREEN ══ -->
+<div id="login-screen">
+  <div class="login-brand">Kosbah OS</div>
+  <div class="login-title">Kosbah Vision Dashboard</div>
+  <div class="login-sub">Sign in to access your dashboard</div>
+  <button class="google-btn" onclick="signInWithGoogle()">
+    <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="m6.306 14.691 6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>
+    Sign in with Google
+  </button>
+</div>
+
+<div id="app">
 <!-- ══ HEADER ══ -->
 <header id="hdr">
   <div>
@@ -384,9 +428,32 @@ main{padding:14px;max-width:880px;margin:0 auto;display:flex;flex-direction:colu
   </div>
 
 </main>
+</div><!-- end #app -->
 <div id="toast"></div>
 
 <script>
+/* ══════════════════════════════════════════════════════════
+   FIREBASE INIT
+   ══════════════════════════════════════════════════════════ */
+const firebaseConfig = {
+  apiKey: "AIzaSyB5RvLoSf7QTRZ_5mIzcXd2sFKpdXyratg",
+  authDomain: "axial-analyzer-304321.firebaseapp.com",
+  projectId: "axial-analyzer-304321",
+  storageBucket: "axial-analyzer-304321.firebasestorage.app",
+  messagingSenderId: "921985846891",
+  appId: "1:921985846891:web:850735aea4bfec07bf2b2e"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+function signInWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch(err => {
+    console.error('Auth error:', err);
+    showToast('⚠ Sign-in failed');
+  });
+}
 /* ══════════════════════════════════════════════════════════
    CONFIG
    ══════════════════════════════════════════════════════════ */
@@ -1117,6 +1184,19 @@ async function init() {
 }
 
 init();
+
+/* ══════════════════════════════════════════════════════════
+   AUTH STATE LISTENER
+   ══════════════════════════════════════════════════════════ */
+auth.onAuthStateChanged(user => {
+  if (user) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+  } else {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  }
+});
 </script>
 </body>
 </html>
