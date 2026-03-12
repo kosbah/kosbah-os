@@ -5,6 +5,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Kosbah Vision Dashboard</title>
+
+  <link rel="icon" type="image/svg+xml" href='data:image/svg+xml;utf8,
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+    <rect width="64" height="64" rx="14" fill="%230F172A"/>
+    <rect x="8" y="8" width="48" height="48" rx="10" fill="%23111827" stroke="%23F59E0B" stroke-width="2"/>
+    <path d="M20 42V22h6l6 8 6-8h6v20h-6V31l-6 8-6-8v11z" fill="%23F9FAFB"/>
+    <circle cx="49" cy="15" r="4" fill="%23F59E0B"/>
+  </svg>'>
+
   <style>
     /* ─── TOKENS ─────────────────────────────────────────────── */
     :root {
@@ -1259,27 +1268,20 @@
 
   <div id="app">
     <!-- ══ HEADER ══ -->
-    <header id="hdr">
+    <header id="hdr" style="
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+">
       <div>
-        <div>
-          <div class="h-brand">Kosbah Vision Dashboard</div>
-          <div class="h-date" id="h-date">—</div>
-          <div class="h-sub" style="margin-top:4px;display:flex;flex-direction:column;gap:1px;">
-            <div class="h-hijri" id="h-hijri"
-              style="font-size:12px;font-weight:600;color:var(--muted);line-height:1.2;">
-              Loading…
-            </div>
-
-            <div class="h-sub" id="h-hijri-year" style="font-size:10px;margin-top:0;color:#7f8a99;line-height:1.15;">
-            </div>
-          </div>
-
-          <div class="h-sub" id="h-ramadan"
-            style="font-size:10px;margin-top:5px;color:var(--green);line-height:1.15;font-weight:700;">
-            Ramadan 1447 [in Egypt]
-          </div>
+        <div class="h-brand">Kosbah Vision Dashboard</div>
+        <div class="h-date" id="h-date">—</div>
+        <div class="h-sub">
+          <div class="h-hijri" id="h-hijri">Loading…</div>
+          <div class="h-sub" id="h-hijri-year"></div>
         </div>
-        <button onclick="auth.signOut()" style="
+      </div>
+      <button onclick="auth.signOut()" style="
     background:transparent;
     border:1px solid rgba(245,158,11,.30);
     color:var(--muted);
@@ -1291,8 +1293,8 @@
     letter-spacing:.05em;
     transition:all .15s;
   " onmouseover="this.style.color='#F59E0B'" onmouseout="this.style.color='var(--muted)'">
-          ⏏ Sign out
-        </button>
+        ⏏ Sign out
+      </button>
     </header>
 
     <main>
