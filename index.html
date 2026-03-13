@@ -1651,6 +1651,7 @@
           <div class="h-hijri" id="h-hijri">Loading…</div>
           <div class="h-sub" id="h-hijri-year"></div>
         </div>
+
       </div><button onclick="auth.signOut()"
         style="background:transparent;border:1px solid rgba(245,158,11,.30);color:var(--muted);font-size:11px;font-weight:700;padding:5px 10px;border-radius:8px;cursor:pointer;letter-spacing:.05em;transition:all .15s"
         onmouseover="this.style.color='#F59E0B'" onmouseout="this.style.color='var(--muted)'">⏏ Sign out</button>
@@ -1810,6 +1811,7 @@
     /* ═══ FIREBASE ═══ */
     const firebaseConfig = { apiKey: "AIzaSyB5RvLoSf7QTRZ_5mIzcXd2sFKpdXyratg", authDomain: "axial-analyzer-304321.firebaseapp.com", projectId: "axial-analyzer-304321", storageBucket: "axial-analyzer-304321.firebasestorage.app", messagingSenderId: "921985846891", appId: "1:921985846891:web:850735aea4bfec07bf2b2e" };
     firebase.initializeApp(firebaseConfig); const auth = firebase.auth(); const db = firebase.firestore();
+    db.settings({ merge: true });
     function signInWithGoogle() { showLoader(); const p = new firebase.auth.GoogleAuthProvider(); auth.signInWithPopup(p).catch(e => { console.error('Auth error:', e); hideLoader(); showToast('⚠ Sign-in failed') }) }
     /* ═══ CONFIG ═══ */
     const CFG = { lat: 31.0883, lon: 31.5969, method: 5, ramadanStart: new Date('2026-02-19'), totalDays: 30, waterCups: 8, waterInterval: 50, weightGoal: 93, weightMilestoneStep: 2, slackWebhook: '', n8nWorkWebhook: '' };
@@ -1830,39 +1832,130 @@
     function getDaysInMonth(d = new Date()) { return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate() }
     function shortDay(ds) { return new Date(ds + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' }) }
     function shortDate(ds) { return new Date(ds + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) }
-    /* ═══ SEED ═══ */
-    function seedData() {
-      if (localStorage.getItem('ros-seeded-v4')) return;
-      const bodyIds = ['cold', 'sun', 'hair', 'workout', 'siwak', 'walk1', 'walk2'];
-      const rStart = new Date('2026-02-19'); const todayD = new Date(dateStr() + 'T12:00:00');
-      for (let d = 0; d < 30; d++) {
-        const dt = new Date(rStart); dt.setDate(dt.getDate() + d); if (dt > todayD) break;
-        const ds = dt.toISOString().slice(0, 10); if (localStorage.getItem(`ros-${ds}`)) continue;
-        let hPct, wCups, pTaken, gS, uS; const rd = d + 1;
-        if (rd <= 7) { hPct = .15 + Math.random() * .15; wCups = Math.floor(1 + Math.random() * 3); pTaken = Math.random() < .7 ? 3 : 4; gS = Math.floor(2 + Math.random() * 2); uS = Math.random() < .4 ? 1 : 0 }
-        else if (rd <= 14) { hPct = .2 + Math.random() * .15; wCups = Math.floor(2 + Math.random() * 3); pTaken = Math.random() < .8 ? 4 : 3; gS = Math.floor(2 + Math.random() * 2); uS = Math.random() < .5 ? 1 : 0 }
-        else if (rd <= 18) { hPct = .35 + Math.random() * .2; wCups = Math.floor(3 + Math.random() * 3); pTaken = Math.random() < .85 ? 4 : 3; gS = Math.floor(1 + Math.random() * 2); uS = Math.random() < .5 ? 1 : 0 }
-        else { hPct = .3 + Math.random() * .3; wCups = Math.floor(3 + Math.random() * 4); pTaken = Math.random() < .9 ? 4 : 3; gS = Math.floor(1 + Math.random() * 3); uS = Math.random() < .4 ? 1 : 0 }
-        const body = {};[...bodyIds].sort(() => Math.random() - .5).slice(0, Math.round(hPct * 7)).forEach(id => body[id] = true);
-        const cups = Array(8).fill(false); for (let c = 0; c < Math.min(wCups, 8); c++)cups[c] = true;
-        const pills = [{ id: 'pill-1', name: 'Pill 1', type: 'pill', anchor: 'maghrib', taken: true }, { id: 'pill-23', name: 'Pill 2+3', type: 'pill', anchor: 'maghrib+30', taken: true }, { id: 'pill-night', name: '2 Packets', type: 'packet', anchor: '23:30', taken: Math.random() < .85 }, { id: 'pill-suhoor', name: 'Last 2 Pills', type: 'pill', anchor: 'fajr-45', taken: pTaken >= 4 }];
-        const gLog = []; for (let s = 0; s < gS; s++) { const hr = 12 + Math.floor(Math.random() * 5); gLog.push({ time: `${hr % 12 || 12}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')} PM` }) }
-        const uLog = []; for (let s = 0; s < uS; s++) { uLog.push({ time: `${3 + Math.floor(Math.random() * 3)}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')} PM` }) }
-        localStorage.setItem(`ros-${ds}`, JSON.stringify({ date: ds, body, cups, meds: pills, growth: { sessions: gS, log: gLog }, upwork: { sessions: uS, log: uLog } }));
-        localStorage.setItem(`ros-weight-${ds}`, JSON.stringify(Math.round((112.5 - d * 0.065 + (Math.random() - .4) * .4) * 10) / 10))
-      }
-      localStorage.setItem('ros-seeded-v4', '1')
-    }
+
+    /* ═══ FIRESTORE HELPERS ═══ */
+    let CURRENT_UID = null;
+    function userRef() { return db.collection('users').doc(CURRENT_UID) }
+    function dayRef(dk) { return userRef().collection('days').doc(dk) }
+    function weekRef(wk) { return userRef().collection('weeks').doc(wk) }
+    function monthRef(mk) { return userRef().collection('months').doc(mk) }
+    function metaRef() { return userRef().collection('meta').doc('info') }
+
     /* ═══ MEDICINE DEFAULTS ═══ */
     const DEFAULT_MEDS = [{ id: 'pill-1', name: 'Pill 1', type: 'pill', dose: '', anchor: 'maghrib', taken: false }, { id: 'pill-23', name: 'Pill 2+3', type: 'pill', dose: '', anchor: 'maghrib+30', taken: false }, { id: 'pill-night', name: '2 Packets', type: 'packet', dose: '', anchor: '23:30', taken: false }, { id: 'pill-suhoor', name: 'Last 2 Pills', type: 'pill', dose: '', anchor: 'fajr-45', taken: false }];
+
     /* ═══ STATE ═══ */
     let TODAY, SK; let PRAYERS = null, TOMORROW_FAJR = null, HIJRI_DATA = null;
+    let DAY_CACHE = {};  // { 'YYYY-MM-DD': stateObj } — in-memory cache for week reads
+    let unsubscribeToday = null;
+
     function refreshToday() { TODAY = getEffectiveDate(); SK = `ros-${TODAY}` }
-    function initState() { return { date: TODAY, body: {}, cups: Array(CFG.waterCups).fill(false), meds: JSON.parse(JSON.stringify(DEFAULT_MEDS)), growth: { sessions: 0, log: [] }, upwork: { sessions: 0, log: [] } } }
-    function loadState() { try { const s = JSON.parse(localStorage.getItem(SK)); if (!s) return initState(); if (!s.meds && s.pills) { s.meds = DEFAULT_MEDS.map((m, i) => ({ ...m, taken: !!s.pills[i] })); delete s.pills } if (!s.meds) s.meds = JSON.parse(JSON.stringify(DEFAULT_MEDS)); if (!s.growth) s.growth = { sessions: 0, log: [] }; if (!s.upwork) s.upwork = { sessions: 0, log: [] }; return s } catch { return initState() } }
-    function saveState() { localStorage.setItem(SK, JSON.stringify(ST)); renderScoreStrip() }
-    let ST;
-    function loadDayState(dk) { try { const s = JSON.parse(localStorage.getItem(`ros-${dk}`)); if (s && !s.meds && s.pills) { s.meds = DEFAULT_MEDS.map((m, i) => ({ ...m, taken: !!s.pills[i] })); delete s.pills } return s || null } catch { return null } }
+
+    function initState() {
+      return {
+        date: TODAY,
+        body: { cold: false, sun: false, hair: false, workout: false, siwak: false, walk1: false, walk2: false },
+        cups: Array(CFG.waterCups).fill(false),
+        meds: JSON.parse(JSON.stringify(DEFAULT_MEDS)),
+        growth: { sessions: 0, log: [] },
+        upwork: { sessions: 0, log: [] },
+        spiritual: { prayers: { fajr: false, dhuhr: false, asr: false, maghrib: false, isha: false }, dua: false },
+        expenses: { items: [], totals: { EGP: 0, USD: 0, AED: 0 } },
+        weight: { value: null, unit: 'kg', note: '' }
+      }
+    }
+
+    function fsToState(doc) {
+      /* Convert Firestore doc data → internal state shape */
+      if (!doc || !doc.exists) return null;
+      const d = doc.data();
+      const s = initState();
+      s.date = doc.id;
+      // health / body
+      if (d.health) { const h = d.health;['cold', 'sun', 'hair', 'workout', 'siwak', 'walk1', 'walk2'].forEach(k => { s.body[k] = !!h[k] }) }
+      // water
+      if (d.water && Array.isArray(d.water.cups)) s.cups = d.water.cups;
+      // medicine — support old 'pills' migration too
+      if (d.medicine && Array.isArray(d.medicine.items) && d.medicine.items.length) s.meds = d.medicine.items;
+      // work
+      if (d.work) {
+        if (d.work.growth) s.growth = { sessions: d.work.growth.sessions || 0, log: d.work.growth.log || [] };
+        if (d.work.upwork) s.upwork = { sessions: d.work.upwork.sessions || 0, log: d.work.upwork.log || [] };
+      }
+      // spiritual
+      if (d.spiritual) s.spiritual = d.spiritual;
+      // expenses
+      if (d.expenses) s.expenses = d.expenses;
+      // weight (stored in same day doc)
+      if (d.weight && d.weight.value != null) s.weight = d.weight;
+      return s;
+    }
+
+    function stateToFs(s) {
+      /* Convert internal state → Firestore doc shape */
+      const sc = calcScores(s);
+      return {
+        health: { cold: !!s.body.cold, sun: !!s.body.sun, hair: !!s.body.hair, workout: !!s.body.workout, siwak: !!s.body.siwak, walk1: !!s.body.walk1, walk2: !!s.body.walk2 },
+        water: { cups: s.cups, total: s.cups.filter(Boolean).length },
+        medicine: { items: s.meds },
+        work: {
+          growth: { sessions: s.growth.sessions, totalMins: s.growth.sessions * 170, log: s.growth.log || [] },
+          upwork: { sessions: s.upwork.sessions, totalMins: s.upwork.sessions * 170, log: s.upwork.log || [] }
+        },
+        spiritual: s.spiritual || { prayers: { fajr: false, dhuhr: false, asr: false, maghrib: false, isha: false }, dua: false },
+        expenses: s.expenses || { items: [], totals: { EGP: 0, USD: 0, AED: 0 } },
+        weight: s.weight || { value: null, unit: 'kg', note: '' },
+        scores: { health: sc.health, water: sc.water, medicine: sc.medicine, work: sc.work, overall: sc.overall },
+        meta: { gregorianDate: s.date, hijriDate: { day: HIJRI_DATA ? parseInt(HIJRI_DATA.day) : 0, month: HIJRI_DATA ? HIJRI_DATA.month.en : '', year: HIJRI_DATA ? parseInt(HIJRI_DATA.year) : 1447 } }
+      }
+    }
+
+    async function saveState() {
+      DAY_CACHE[TODAY] = ST;
+      renderScoreStrip();
+      try { await dayRef(TODAY).set(stateToFs(ST), { merge: true }) }
+      catch (e) { console.error('saveState failed', e); showToast('⚠ Save failed — check connection') }
+    }
+
+    async function loadTodayFromFs() {
+      try {
+        const doc = await dayRef(TODAY).get();
+        const s = fsToState(doc);
+        return s || initState();
+      } catch (e) {
+        console.error('loadTodayFromFs failed', e);
+        return initState();
+      }
+    }
+
+    function subscribeToday() {
+      if (unsubscribeToday) unsubscribeToday();
+      unsubscribeToday = dayRef(TODAY).onSnapshot(doc => {
+        const s = fsToState(doc);
+        if (s) {
+          ST = s; DAY_CACHE[TODAY] = ST;
+          renderScoreStrip(); renderBody(); renderCups(); renderPills(); renderWork(); renderWeight(); renderWeekSection();
+        }
+      }, e => console.warn('snapshot error', e));
+    }
+
+    /* ═══ DAY CACHE + ASYNC WEEK READS ═══ */
+    async function loadDayState(dk) {
+      if (DAY_CACHE[dk] !== undefined) return DAY_CACHE[dk];
+      try {
+        const doc = await dayRef(dk).get();
+        const s = fsToState(doc);
+        DAY_CACHE[dk] = s;
+        return s;
+      } catch { DAY_CACHE[dk] = null; return null }
+    }
+
+    async function prefetchWeek(days) {
+      const missing = days.filter(d => DAY_CACHE[d] === undefined);
+      if (!missing.length) return;
+      await Promise.all(missing.map(d => loadDayState(d)));
+    }
+
     /* ═══ SCORES ═══ */
     function calcScores(s) {
       if (!s) return { health: 0, water: 0, medicine: 0, work: 0, overall: 0 };
@@ -1877,17 +1970,40 @@
       const overall = Math.round(health * .3 + water * .2 + medicine * .2 + work * .3);
       return { health, water, medicine, work, overall }
     }
-    function getWeekAvgScores() { let t = { health: 0, water: 0, medicine: 0, work: 0 }, c = 0; for (let i = 1; i <= 7; i++) { const d = dateStr(-i); const s = loadDayState(d); if (s) { const sc = calcScores(s); t.health += sc.health; t.water += sc.water; t.medicine += sc.medicine; t.work += sc.work; c++ } } if (c === 0) return { health: 0, water: 0, medicine: 0, work: 0 }; return { health: Math.round(t.health / c), water: Math.round(t.water / c), medicine: Math.round(t.medicine / c), work: Math.round(t.work / c) } }
+
+    async function getWeekAvgScores() {
+      let t = { health: 0, water: 0, medicine: 0, work: 0 }, c = 0;
+      for (let i = 1; i <= 7; i++) {
+        const d = dateStr(-i);
+        const s = await loadDayState(d);
+        if (s) { const sc = calcScores(s); t.health += sc.health; t.water += sc.water; t.medicine += sc.medicine; t.work += sc.work; c++ }
+      }
+      if (c === 0) return { health: 0, water: 0, medicine: 0, work: 0 };
+      return { health: Math.round(t.health / c), water: Math.round(t.water / c), medicine: Math.round(t.medicine / c), work: Math.round(t.work / c) };
+    }
+
     /* ═══ SCORE STRIP ═══ */
-    function renderScoreStrip() {
-      const sc = calcScores(ST); const wa = getWeekAvgScores();
+    async function renderScoreStrip() {
+      const sc = calcScores(ST); const wa = await getWeekAvgScores();
       const items = [{ label: 'Work', pct: sc.work, avg: wa.work, color: '#F59E0B' }, { label: 'Health', pct: sc.health, avg: wa.health, color: '#10B981' }, { label: 'Water', pct: sc.water, avg: wa.water, color: '#3B82F6' }, { label: 'Medicine', pct: sc.medicine, avg: wa.medicine, color: '#8B5CF6' }];
       const C = 2 * Math.PI * 26;
       document.getElementById('score-strip').innerHTML = items.map(it => { const dash = (it.pct / 100) * C; const diff = it.pct - it.avg; const dc = diff > 0 ? 'color:var(--green)' : diff < 0 ? 'color:var(--red)' : 'color:var(--muted)'; const ds = diff > 0 ? `↑ ${diff}%` : diff < 0 ? `↓ ${Math.abs(diff)}%` : '—'; return `<div class="score-ring-card"><svg class="sr-svg" viewBox="0 0 60 60"><circle cx="30" cy="30" r="26" fill="none" stroke="#1F2937" stroke-width="5"/><circle cx="30" cy="30" r="26" fill="none" stroke="${it.color}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${dash.toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 30 30)"/></svg><div class="sr-pct" style="color:${it.color}">${it.pct}%</div><div class="sr-label">${it.label}</div><div class="sr-compare">vs week avg <span style="${dc}">${ds}</span></div></div>` }).join('')
     }
+
     /* ═══ WEIGHT ═══ */
-    function getWeight(dk) { try { return JSON.parse(localStorage.getItem(`ros-weight-${dk}`)) } catch { return null } }
-    function saveWeight() { const v = parseFloat(document.getElementById('wc-input').value); if (isNaN(v) || v < 40 || v > 250) { showToast('Enter a valid weight'); return } localStorage.setItem(`ros-weight-${TODAY}`, JSON.stringify(v)); document.getElementById('wc-input').value = ''; renderWeight(); renderScoreStrip(); showToast(`⚖️ ${v} kg saved`) }
+    function getWeight(dk) {
+      const s = DAY_CACHE[dk];
+      if (s && s.weight && s.weight.value != null) return s.weight.value;
+      return null;
+    }
+    async function saveWeight() {
+      const v = parseFloat(document.getElementById('wc-input').value);
+      if (isNaN(v) || v < 40 || v > 250) { showToast('Enter a valid weight'); return }
+      ST.weight = { value: v, unit: 'kg', note: '' };
+      document.getElementById('wc-input').value = '';
+      await saveState();
+      renderWeight(); showToast(`⚖️ ${v} kg saved`);
+    }
     function renderWeight() {
       const tw = getWeight(TODAY), yw = getWeight(dateStr(-1));
       document.getElementById('wc-today').innerHTML = tw ? `${tw}<small> kg</small>` : '—<small> kg</small>';
@@ -1895,7 +2011,7 @@
       if (tw && yw) { const diff = tw - yw; dEl.className = `wc-delta ${diff < 0 ? 'loss' : diff > 0 ? 'gain' : 'flat'}`; dEl.textContent = `${diff > 0 ? '+' : ''}${diff.toFixed(1)} kg vs yesterday` } else dEl.textContent = '';
       const cw = tw || yw || 112; const nm = Math.floor(cw / CFG.weightMilestoneStep) * CFG.weightMilestoneStep;
       document.getElementById('wc-milestone').innerHTML = `<div class="wc-mile-next">🎯 Next milestone: ${nm} kg · ${(cw - nm).toFixed(1)} kg to go</div><div class="wc-mile-end">End goal: ${CFG.weightGoal} kg · ${(cw - CFG.weightGoal).toFixed(1)} kg total journey</div>`;
-      // 7-day table
+      // 7-day table (uses cache — already prefetched by week section)
       const tbl = document.getElementById('wc-week-table'); let rows = '';
       for (let i = 6; i >= 0; i--) { const d = dateStr(-i); const w = getWeight(d); const isT = d === TODAY; rows += `<tr><td class="w7-day">${shortDay(d)} ${new Date(d + 'T12:00:00').getDate()}</td><td class="${w ? (isT ? 'w7-val w7-today' : 'w7-val') : 'w7-empty'}">${w ? w + ' kg' : '—'}</td></tr>` }
       tbl.innerHTML = `<table class="w7-table">${rows}</table>`
@@ -1918,10 +2034,10 @@
     /* ═══ BODY ═══ */
     const BODY_ITEMS = [{ id: 'cold', icon: '🚿', label: 'Cold shower' }, { id: 'sun', icon: '☀️', label: 'Sun · 20 min' }, { id: 'hair', icon: '💆', label: 'Hair wash' }, { id: 'workout', icon: '💪', label: 'Workout · 10 min' }, { id: 'siwak', icon: '🪥', label: 'Siwak (after Asr)' }, { id: 'walk1', icon: '🚶', label: 'Walk 1 · 10 min' }, { id: 'walk2', icon: '🚶', label: 'Walk 2 · 10 min' }];
     function renderBody() { document.getElementById('body-grid').innerHTML = BODY_ITEMS.map(it => { const d = !!ST.body[it.id]; return `<div class="body-item ${d ? 'checked' : ''}" onclick="toggleBody('${it.id}')"><div class="bi-icon">${it.icon}</div><div class="bi-label">${it.label}</div><div class="bi-dot">${d ? '✓' : ''}</div></div>` }).join('') }
-    function toggleBody(id) { ST.body[id] = !ST.body[id]; saveState(); renderBody(); showToast(ST.body[id] ? '✓ Done' : 'Unmarked') }
+    async function toggleBody(id) { ST.body[id] = !ST.body[id]; renderBody(); await saveState(); showToast(ST.body[id] ? '✓ Done' : 'Unmarked') }
     /* ═══ CUPS ═══ */
     function renderCups() { const times = cupTimes(); document.getElementById('cups-row').innerHTML = Array.from({ length: CFG.waterCups }, (_, i) => { const f = ST.cups[i]; const tL = times[i] ? fmt12plain(times[i]) : ''; return `<div class="cup ${f ? 'filled' : ''}" onclick="toggleCup(${i})" title="Cup ${i + 1}${tL ? ' · ' + tL : ''}">${f ? '💧' : `<span>${i + 1}</span>`}</div>` }).join(''); const dr = ST.cups.filter(Boolean).length; const nI = ST.cups.findIndex(c => !c); const h = document.getElementById('cup-hint'); if (nI === -1) { h.textContent = 'All 8 cups done · 4.0L ✓'; h.style.color = '#6ee7b7' } else if (cupTimes()[nI]) { h.innerHTML = `${dr} of 8 · ${(dr * .5).toFixed(1)}L &nbsp;·&nbsp; Next: Cup ${nI + 1} at <strong>${fmt12plain(cupTimes()[nI])}</strong>`; h.style.color = '' } else { h.textContent = `${dr} of 8 cups tracked`; h.style.color = '' } }
-    function toggleCup(i) { ST.cups[i] = !ST.cups[i]; saveState(); renderCups(); showToast(ST.cups[i] ? `💧 ${(ST.cups.filter(Boolean).length * .5).toFixed(1)}L done` : 'Cup unchecked') }
+    async function toggleCup(i) { ST.cups[i] = !ST.cups[i]; renderCups(); await saveState(); showToast(ST.cups[i] ? `💧 ${(ST.cups.filter(Boolean).length * .5).toFixed(1)}L done` : 'Cup unchecked') }
     /* ═══ MEDICINE (dynamic) ═══ */
     function renderPills() {
       const el = document.getElementById('pills-row');
@@ -1930,49 +2046,52 @@
         return `<div class="pill-item ${m.taken ? 'taken' : ''}" onclick="toggleMed(${i})"><div class="pi-icon">${m.type === 'packet' ? '📦' : m.type === 'injection' ? '💉' : '💊'}</div><div class="pi-info"><div class="pi-name">${m.name}${m.dose ? ' · ' + m.dose : ''}</div><div class="pi-meta">${tStr} · ${m.anchor}</div></div><div class="pi-badge ${m.taken ? 'taken-b' : 'untaken'}">${m.taken ? '✓ Taken' : 'Tap'}</div><div class="pi-del" onclick="event.stopPropagation();removeMed(${i})" title="Remove">✕</div></div>`
       }).join('')
     }
-    function toggleMed(i) { ST.meds[i].taken = !ST.meds[i].taken; saveState(); renderPills(); showToast(ST.meds[i].taken ? '💊 Taken' : 'Unmarked') }
-    function removeMed(i) { if (!confirm(`Remove "${ST.meds[i].name}"?`)) return; ST.meds.splice(i, 1); saveState(); renderPills(); showToast('Medicine removed') }
+    async function toggleMed(i) { ST.meds[i].taken = !ST.meds[i].taken; renderPills(); await saveState(); showToast(ST.meds[i].taken ? '💊 Taken' : 'Unmarked') }
+    async function removeMed(i) { if (!confirm(`Remove "${ST.meds[i].name}"?`)) return; ST.meds.splice(i, 1); renderPills(); await saveState(); showToast('Medicine removed') }
     function openAddMed() {
       document.getElementById('med-modal-root').innerHTML = `<div class="med-modal-overlay" onclick="if(event.target===this)closeAddMed()"><div class="med-modal"><h3>Add Medicine</h3><label>Name</label><input id="mm-name" placeholder="e.g. Vitamin D"><label>Type</label><select id="mm-type"><option value="pill">💊 Pill</option><option value="packet">📦 Packet</option><option value="scoop">🥄 Scoop</option><option value="injection">💉 Injection</option></select><label>Dose (optional)</label><input id="mm-dose" placeholder="e.g. 500mg"><label>Anchor Time</label><select id="mm-anchor"><option value="maghrib">At Maghrib</option><option value="maghrib+30">Maghrib + 30min</option><option value="fajr-45">Fajr - 45min</option><option value="23:30">11:30 PM (fixed)</option><option value="12:00">12:00 PM (fixed)</option><option value="15:00">3:00 PM (fixed)</option></select><div class="med-modal-btns"><button class="mm-cancel" onclick="closeAddMed()">Cancel</button><button class="mm-save" onclick="saveMed()">Add</button></div></div></div>`
     }
     function closeAddMed() { document.getElementById('med-modal-root').innerHTML = '' }
-    function saveMed() { const name = document.getElementById('mm-name').value.trim(); if (!name) { showToast('Enter a name'); return } const med = { id: 'med-' + Date.now(), name, type: document.getElementById('mm-type').value, dose: document.getElementById('mm-dose').value.trim(), anchor: document.getElementById('mm-anchor').value, taken: false }; ST.meds.push(med); saveState(); renderPills(); closeAddMed(); showToast(`💊 ${name} added`) }
+    async function saveMed() { const name = document.getElementById('mm-name').value.trim(); if (!name) { showToast('Enter a name'); return } const med = { id: 'med-' + Date.now(), name, type: document.getElementById('mm-type').value, dose: document.getElementById('mm-dose').value.trim(), anchor: document.getElementById('mm-anchor').value, taken: false }; ST.meds.push(med); renderPills(); await saveState(); closeAddMed(); showToast(`💊 ${name} added`) }
     /* ═══ WORK ═══ */
     function renderWork() { ['growth', 'upwork'].forEach(type => { const c = ST[type].sessions; const log = ST[type].log || []; const dc = type === 'growth' ? 'done-g' : 'done-u'; const tH = (c * 170 / 60).toFixed(1); const dE = document.getElementById(`${type}-dots`); if (dE) { dE.innerHTML = Array.from({ length: c }, (_, i) => `<div class="sesh-dot ${dc}" title="Session ${i + 1}" onclick="removeSession('${type}',${i})">🔥</div>`).join('') + `<div class="sesh-dot add" onclick="startSession('${type}')">+</div>` } const tE = document.getElementById(`${type}-total`); if (tE) { const cc = type === 'growth' ? 'c-g' : 'c-u'; tE.innerHTML = c === 0 ? 'No sessions yet today' : `<span class="${cc}">${c} session${c !== 1 ? 's' : ''}</span> · <span class="${cc}">${tH}h</span> deep work` } const lE = document.getElementById(`${type}-log`); if (lE) lE.innerHTML = log.slice(-4).reverse().map(e => `<div class="wt-log-item"><span>▶ Started</span><span>${e.time}</span></div>`).join('') }) }
-    function removeSession(type, idx) { if (ST[type].sessions <= 0) return; ST[type].sessions--; ST[type].log.splice(idx, 1); saveState(); renderWork(); showToast('Session removed') }
-    function startSession(type) { const t = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }); ST[type].sessions++; ST[type].log.push({ time: t }); saveState(); renderWork(); const wh = CFG.n8nWorkWebhook || CFG.slackWebhook; if (wh) fetch(wh, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionType: type === 'growth' ? 'Growth' : 'Upwork', startTime: t }) }).catch(() => { }); showToast(`▶ ${type === 'growth' ? 'Growth' : 'Upwork'} session started`) }
+    async function removeSession(type, idx) { if (ST[type].sessions <= 0) return; ST[type].sessions--; ST[type].log.splice(idx, 1); renderWork(); await saveState(); showToast('Session removed') }
+    async function startSession(type) { const t = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }); ST[type].sessions++; ST[type].log.push({ time: t }); renderWork(); await saveState(); const wh = CFG.n8nWorkWebhook || CFG.slackWebhook; if (wh) fetch(wh, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionType: type === 'growth' ? 'Growth' : 'Upwork', startTime: t }) }).catch(() => { }); showToast(`▶ ${type === 'growth' ? 'Growth' : 'Upwork'} session started`) }
     document.getElementById('growth-btn').addEventListener('click', () => startSession('growth'));
     document.getElementById('upwork-btn').addEventListener('click', () => startSession('upwork'));
     /* ═══ YOUR WEEK ═══ */
     let weekOff = 0, selDay = null;
     function getWeekBounds(off = 0) { const ref = new Date(TODAY + 'T12:00:00'); ref.setDate(ref.getDate() + (off * 7)); const dow = ref.getDay(); const mon = new Date(ref); mon.setDate(ref.getDate() - ((dow + 6) % 7)); const days = []; for (let i = 0; i < 7; i++) { const d = new Date(mon); d.setDate(mon.getDate() + i); days.push(d.toISOString().slice(0, 10)) } return { days, monStr: days[0], sunStr: days[6] } }
-    function renderWeekSection() {
+    async function renderWeekSection() {
       const wk = getWeekBounds(weekOff); const td = new Date(TODAY + 'T12:00:00');
+      // Prefetch all 7 days + 7 preceding days for weight table
+      const prefetchDays = [...wk.days];
+      for (let i = 1; i <= 7; i++)prefetchDays.push(dateStr(-i));
+      await prefetchWeek(prefetchDays);
       document.getElementById('week-nav').innerHTML = `<button class="week-nav-btn" onclick="changeWeek(-1)">‹</button><div class="week-nav-label">${shortDate(wk.monStr)} — ${shortDate(wk.sunStr)}</div><button class="week-nav-btn" onclick="changeWeek(1)" ${weekOff >= 0 ? 'disabled' : ''}>›</button>`;
-      document.getElementById('week-strip').innerHTML = wk.days.map(d => { const dd = new Date(d + 'T12:00:00'); const isFut = dd > td; const isT = d === TODAY; const st = loadDayState(d); const sc = st ? calcScores(st) : null; const pct = sc ? sc.overall : 0; const bc = pct >= 70 ? '#10B981' : pct >= 40 ? '#F59E0B' : '#EF4444'; const sel = selDay === d; return `<div class="ws-day ${isT ? 'today' : ''} ${sel ? 'selected' : ''} ${isFut ? 'future' : ''}" onclick="${isFut ? '' : `selectDay('${d}')`}"><div class="ws-day-name">${shortDay(d)}</div><div class="ws-day-num">${new Date(d + 'T12:00:00').getDate()}</div><div class="ws-day-bar"><div class="ws-day-bar-fill" style="width:${isFut ? 0 : pct}%;background:${bc}"></div></div><div class="ws-day-pct" style="color:${isFut ? 'var(--muted)' : bc}">${isFut ? '—' : pct + '%'}</div></div>` }).join('');
-      renderDayDetail(); renderWeekTable()
+      document.getElementById('week-strip').innerHTML = wk.days.map(d => { const dd = new Date(d + 'T12:00:00'); const isFut = dd > td; const isT = d === TODAY; const st = DAY_CACHE[d]; const sc = st ? calcScores(st) : null; const pct = sc ? sc.overall : 0; const bc = pct >= 70 ? '#10B981' : pct >= 40 ? '#F59E0B' : '#EF4444'; const sel = selDay === d; return `<div class="ws-day ${isT ? 'today' : ''} ${sel ? 'selected' : ''} ${isFut ? 'future' : ''}" onclick="${isFut ? '' : `selectDay('${d}')`}"><div class="ws-day-name">${shortDay(d)}</div><div class="ws-day-num">${new Date(d + 'T12:00:00').getDate()}</div><div class="ws-day-bar"><div class="ws-day-bar-fill" style="width:${isFut ? 0 : pct}%;background:${bc}"></div></div><div class="ws-day-pct" style="color:${isFut ? 'var(--muted)' : bc}">${isFut ? '—' : pct + '%'}</div></div>` }).join('');
+      renderDayDetail(); renderWeekTable(); renderWeight()
     }
-    function changeWeek(dir) { weekOff += dir; if (weekOff > 0) weekOff = 0; selDay = null; renderWeekSection() }
-    function selectDay(d) { selDay = selDay === d ? null : d; renderWeekSection() }
-    function renderDayDetail() { const c = document.getElementById('day-detail-container'); if (!selDay) { c.innerHTML = ''; return } const st = loadDayState(selDay); if (!st) { c.innerHTML = `<div class="day-detail"><div class="dd-header"><span>${shortDate(selDay)} — No data</span><span class="dd-close" onclick="selectDay('${selDay}')">✕</span></div></div>`; return } const sc = calcScores(st); const w = getWeight(selDay); const bd = BODY_ITEMS.filter(it => st.body && st.body[it.id]).length; const cd = (st.cups || []).filter(Boolean).length; const meds = st.meds || []; const md = meds.filter(m => m.taken).length; const gS = st.growth ? st.growth.sessions : 0, uS = st.upwork ? st.upwork.sessions : 0; c.innerHTML = `<div class="day-detail"><div class="dd-header"><span>📊 ${shortDate(selDay)} · Overall ${sc.overall}%</span><span class="dd-close" onclick="selectDay('${selDay}')">✕</span></div><div class="dd-grid"><div class="dd-item"><div class="dd-item-label">Health</div><div class="dd-item-val" style="color:var(--green)">${bd}/7 · ${sc.health}%</div></div><div class="dd-item"><div class="dd-item-label">Water</div><div class="dd-item-val" style="color:var(--blue)">${cd}/8 · ${sc.water}%</div></div><div class="dd-item"><div class="dd-item-label">Medicine</div><div class="dd-item-val" style="color:var(--purple)">${md}/${meds.length} · ${sc.medicine}%</div></div><div class="dd-item"><div class="dd-item-label">Work</div><div class="dd-item-val" style="color:var(--primary)">${gS}G + ${uS}U · ${sc.work}%</div></div><div class="dd-item"><div class="dd-item-label">Weight</div><div class="dd-item-val">${w ? w + ' kg' : '—'}</div></div><div class="dd-item"><div class="dd-item-label">Deep Hours</div><div class="dd-item-val">${((gS + uS) * 170 / 60).toFixed(1)}h</div></div></div></div>` }
+    async function changeWeek(dir) { weekOff += dir; if (weekOff > 0) weekOff = 0; selDay = null; await renderWeekSection() }
+    async function selectDay(d) { selDay = selDay === d ? null : d; await renderWeekSection() }
+    function renderDayDetail() { const c = document.getElementById('day-detail-container'); if (!selDay) { c.innerHTML = ''; return } const st = DAY_CACHE[selDay]; if (!st) { c.innerHTML = `<div class="day-detail"><div class="dd-header"><span>${shortDate(selDay)} — No data</span><span class="dd-close" onclick="selectDay('${selDay}')">✕</span></div></div>`; return } const sc = calcScores(st); const w = getWeight(selDay); const bd = BODY_ITEMS.filter(it => st.body && st.body[it.id]).length; const cd = (st.cups || []).filter(Boolean).length; const meds = st.meds || []; const md = meds.filter(m => m.taken).length; const gS = st.growth ? st.growth.sessions : 0, uS = st.upwork ? st.upwork.sessions : 0; c.innerHTML = `<div class="day-detail"><div class="dd-header"><span>📊 ${shortDate(selDay)} · Overall ${sc.overall}%</span><span class="dd-close" onclick="selectDay('${selDay}')">✕</span></div><div class="dd-grid"><div class="dd-item"><div class="dd-item-label">Health</div><div class="dd-item-val" style="color:var(--green)">${bd}/7 · ${sc.health}%</div></div><div class="dd-item"><div class="dd-item-label">Water</div><div class="dd-item-val" style="color:var(--blue)">${cd}/8 · ${sc.water}%</div></div><div class="dd-item"><div class="dd-item-label">Medicine</div><div class="dd-item-val" style="color:var(--purple)">${md}/${meds.length} · ${sc.medicine}%</div></div><div class="dd-item"><div class="dd-item-label">Work</div><div class="dd-item-val" style="color:var(--primary)">${gS}G + ${uS}U · ${sc.work}%</div></div><div class="dd-item"><div class="dd-item-label">Weight</div><div class="dd-item-val">${w ? w + ' kg' : '—'}</div></div><div class="dd-item"><div class="dd-item-label">Deep Hours</div><div class="dd-item-val">${((gS + uS) * 170 / 60).toFixed(1)}h</div></div></div></div>` }
     function renderWeekTable() {
-      // Determine which month the current week view is in (use the Monday of viewed week)
       const wk = getWeekBounds(weekOff); const refDate = new Date(wk.monStr + 'T12:00:00');
       const yr = refDate.getFullYear(), mo = refDate.getMonth(); const mName = refDate.toLocaleDateString('en-US', { month: 'long' });
       const lastD = new Date(yr, mo + 1, 0).getDate(); const todayD = new Date(TODAY + 'T12:00:00');
       const weeks = []; for (let s = 1; s <= lastD; s += 7) { const e = Math.min(s + 6, lastD); const days = []; for (let d = s; d <= e; d++)days.push(`${yr}-${String(mo + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`); weeks.push({ label: `${mName.slice(0, 3)} ${s}–${e}`, days }) }
       let html = `<thead><tr><th style="text-align:left">${mName}</th><th>Health</th><th>Water</th><th>Work</th><th>Wt Δ</th><th>Hrs</th></tr></thead><tbody>`;
-      weeks.forEach(w => { const past = w.days.filter(d => new Date(d + 'T12:00:00') <= todayD); const isCur = past.length > 0 && past.length < w.days.length; if (past.length === 0) { html += `<tr><td class="wt-label-cell">${w.label}</td><td class="wt-empty">—</td><td class="wt-empty">—</td><td class="wt-empty">—</td><td class="wt-empty">—</td><td class="wt-empty">—</td></tr>`; return } let hS = 0, wS = 0, wkS = 0, cnt = 0, tS = 0, fW = null, lW = null; past.forEach(d => { const st = loadDayState(d); if (st) { const sc = calcScores(st); hS += sc.health; wS += sc.water; wkS += sc.work; cnt++; tS += (st.growth ? st.growth.sessions : 0) + (st.upwork ? st.upwork.sessions : 0) } const wt = getWeight(d); if (wt) { if (!fW) fW = wt; lW = wt } }); const aH = cnt ? Math.round(hS / cnt) : 0, aW = cnt ? Math.round(wS / cnt) : 0, aWk = cnt ? Math.round(wkS / cnt) : 0; const wd = (fW && lW) ? (lW - fW).toFixed(1) : null; const dH = (tS * 170 / 60).toFixed(1); const pc = v => v >= 70 ? 'wt-pct-good' : v >= 40 ? 'wt-pct-ok' : 'wt-pct-bad'; html += `<tr class="${isCur ? 'wt-current' : ''}"><td class="wt-label-cell">${w.label}</td><td class="${pc(aH)}">${aH}%</td><td class="${pc(aW)}">${aW}%</td><td class="${pc(aWk)}">${aWk}%</td><td style="color:${wd && wd < 0 ? 'var(--green)' : wd > 0 ? 'var(--red)' : 'var(--muted)'}">${wd ? (wd > 0 ? '+' : '') + wd + 'kg' : '—'}</td><td>${dH}h</td></tr>` });
+      weeks.forEach(w => { const past = w.days.filter(d => new Date(d + 'T12:00:00') <= todayD); const isCur = past.length > 0 && past.length < w.days.length; if (past.length === 0) { html += `<tr><td class="wt-label-cell">${w.label}</td><td class="wt-empty">—</td><td class="wt-empty">—</td><td class="wt-empty">—</td><td class="wt-empty">—</td><td class="wt-empty">—</td></tr>`; return } let hS = 0, wS = 0, wkS = 0, cnt = 0, tS = 0, fW = null, lW = null; past.forEach(d => { const st = DAY_CACHE[d]; if (st) { const sc = calcScores(st); hS += sc.health; wS += sc.water; wkS += sc.work; cnt++; tS += (st.growth ? st.growth.sessions : 0) + (st.upwork ? st.upwork.sessions : 0) } const wt = getWeight(d); if (wt) { if (!fW) fW = wt; lW = wt } }); const aH = cnt ? Math.round(hS / cnt) : 0, aW = cnt ? Math.round(wS / cnt) : 0, aWk = cnt ? Math.round(wkS / cnt) : 0; const wd = (fW && lW) ? (lW - fW).toFixed(1) : null; const dH = (tS * 170 / 60).toFixed(1); const pc = v => v >= 70 ? 'wt-pct-good' : v >= 40 ? 'wt-pct-ok' : 'wt-pct-bad'; html += `<tr class="${isCur ? 'wt-current' : ''}"><td class="wt-label-cell">${w.label}</td><td class="${pc(aH)}">${aH}%</td><td class="${pc(aW)}">${aW}%</td><td class="${pc(aWk)}">${aWk}%</td><td style="color:${wd && wd < 0 ? 'var(--green)' : wd > 0 ? 'var(--red)' : 'var(--muted)'}">${wd ? (wd > 0 ? '+' : '') + wd + 'kg' : '—'}</td><td>${dH}h</td></tr>` });
       html += '</tbody>'; document.getElementById('week-table').innerHTML = html;
       document.getElementById('month-grid-container').innerHTML = `<button class="view-month-btn" onclick="toggleMonthGrid()">📊 View Full Month</button><div id="month-grid" style="display:none"></div>`
     }
     function toggleMonthGrid() { const g = document.getElementById('month-grid'); if (g.style.display === 'none') { g.style.display = 'block'; renderMonthGrid() } else g.style.display = 'none' }
     function renderMonthGrid() {
       const wk = getWeekBounds(weekOff); const refDate = new Date(wk.monStr + 'T12:00:00');
-      const yr = refDate.getFullYear(), mo = refDate.getMonth(); const lastD = new Date(yr, mo + 1, 0).getDate(); const todayD = new Date(TODAY + 'T12:00:00'); const mName = refDate.toLocaleDateString('en-US', { month: 'long' });
+      const yr = refDate.getFullYear(), mo = refDate.getMonth(); const lastD = new Date(yr, mo + 1, 0).getDate(); const todayD = new Date(TODAY + 'T12:00:00');
       let h = `<div class="month-list">`;
       for (let d = 1; d <= lastD; d++) {
-        const ds = `${yr}-${String(mo + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`; const dd = new Date(ds + 'T12:00:00'); const isFut = dd > todayD; const st = loadDayState(ds); const sc = st ? calcScores(st) : null; const pct = sc ? sc.overall : 0; const bc = isFut ? 'var(--border)' : pct >= 70 ? 'var(--green)' : pct >= 40 ? 'var(--primary)' : 'var(--red)';
+        const ds = `${yr}-${String(mo + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`; const dd = new Date(ds + 'T12:00:00'); const isFut = dd > todayD; const st = DAY_CACHE[ds]; const sc = st ? calcScores(st) : null; const pct = sc ? sc.overall : 0; const bc = isFut ? 'var(--border)' : pct >= 70 ? 'var(--green)' : pct >= 40 ? 'var(--primary)' : 'var(--red)';
         h += `<div class="ml-row"><div class="ml-day">${shortDay(ds)} ${d}</div><div class="ml-bar"><div class="ml-bar-fill" style="width:${isFut ? 0 : pct}%;background:${bc}"></div></div><div class="ml-pct" style="color:${isFut ? 'var(--muted)' : bc}">${isFut ? '—' : pct + '%'}</div></div>`
       }
       h += '</div>'; document.getElementById('month-grid').innerHTML = h
@@ -2003,32 +2122,70 @@
       const waterH = (((1440 - waterStart) + suhoorStart) / 60).toFixed(1);
       el.innerHTML = `<div class="arch-context">24-hour view · midnight → midnight · Dikirnis prayer times</div><div class="timeline-outer">${bHTML}</div><div class="hour-axis">${hAx}</div><div class="prayer-marker-row">${mHTML}</div><div class="arch-stats"><div class="ss-item"><div class="ss-val">${sleepH}h</div><div class="ss-lbl">😴 Sleep Window</div></div><div class="ss-item"><div class="ss-val">${workH}h</div><div class="ss-lbl">⚡ Work Window</div></div><div class="ss-item"><div class="ss-val">${waterH}h</div><div class="ss-lbl">💧 Water Window</div></div></div><div class="arch-legend"><div class="arch-legend-item"><div class="leg-dot" style="background:#2a1a5e"></div><span>😴 Sleep (inc. nap)</span></div><div class="arch-legend-item"><div class="leg-dot" style="background:#2e1515"></div><span>⚡ Work (all awake time)</span></div><div class="arch-legend-item"><div class="leg-dot" style="background:#0f2e1a"></div><span>💧 Water (within work)</span></div></div>`
     }
-    /* ═══ QUOTES ═══ */
-    const QUOTES = [{ num: 1, html: 'If you want to introduce value:<br><br>• Prove it.&nbsp; • Document it.&nbsp; • Show it.', tags: ['Value', 'Execution'] }, { num: 2, html: 'If you are everything to everyone, you are <strong>nothing to anyone</strong>.<br>Stand for something. Pick your ground.', tags: ['Identity', 'Focus'] }, { num: 3, html: '<strong>Copywriting</strong> is using words to persuade someone to take action or think a certain way.', tags: ['Skill', 'Copywriting'] }, { num: 4, html: 'Focus on <strong>monthly income</strong>, not your bank balance.<br>Reinvest the extra money so your income keeps growing.', tags: ['Money', 'Mindset'] }, { num: 5, html: 'The basics matter most:<br>Show up. Stay consistent. Learn real skills before chasing big moves.', tags: ['Discipline', 'Consistency'] }, { num: 6, html: "Failure isn't starting over.<br>It's just another <strong>experience point</strong>.", tags: ['Resilience', 'Growth'] }, { num: 7, html: 'The solution in two lines:<br><br>• Admit your mistake.<br>• Use what you have and keep going.', tags: ['Accountability', 'Action'] }, { num: 8, html: 'The normal phase:<br>Work <strong>6 days a week, 12 hours a day</strong>.<br>You have energy now — not experience.', tags: ['Work Ethic', 'Phase'] }, { num: 9, html: "When you're broke, live <strong>defensively</strong>.<br>Cut your spending to the minimum so you can bet on yourself.", tags: ['Finance', 'Survival Mode'] }, { num: 10, html: "If you're broke:<br><br>• No restaurants&nbsp; • No new clothes&nbsp; • Only free social events", tags: ['Finance', 'Discipline'] }, { num: 11, html: 'Be patient with results.<br>Be impatient with action.<br><strong>Movement cures anxiety.</strong>', tags: ['Mindset', 'Action'] }, { num: 12, html: 'Build a <strong>cash reserve</strong> so you can move from survival mode to growth mode.', tags: ['Finance', 'Strategy'] }, { num: 13, html: "The golden rule:<br>Start. Learn. Don't quit.<br>The game is won by the <strong>last person still standing</strong>.", tags: ['Persistence', 'Mindset'] }, { num: 14, html: '"Fake it till you make it" is wrong.<br>The real rule: <strong>do the work before you talk about it.</strong>', tags: ['Integrity', 'Work Ethic'] }, { num: 15, html: "Content alone won't make you successful.<br><strong>Proof and context behind it</strong> are what convince people.", tags: ['Marketing', 'Trust'] }, { num: 16, html: 'If someone is ahead of you, <strong>double your effort</strong> until you catch them — and pass them.', tags: ['Competition', 'Drive'] }, { num: 17, html: "Don't play by other people's rules.<br><strong>Set your own.</strong>", tags: ['Independence', 'Mindset'] }, { num: 18, html: 'Choose the decision that creates the <strong>better story</strong>.<br>Nobody regrets the bold stories.', tags: ['Courage', 'Decision-Making'] }, { num: 19, html: 'Long routines and complicated <strong>morning routines</strong> are often distractions.<br>More work produces more results.', tags: ['Productivity', 'Focus'] }, { num: 20, html: 'Identity is mostly a lie.<br>What you <strong>do repeatedly</strong> is who you become.', tags: ['Identity', 'Habits'] }, { num: 21, html: 'Passive income is mostly a myth.<br>Everything costs time.<br>Focus on <strong>how much you earn per hour</strong>.', tags: ['Finance', 'Clarity'] }, { num: 22, html: "If you can't afford to buy it <strong>twice</strong>, don't buy it once.<br>Always think in <strong>hours of work</strong>, not price.", tags: ['Finance', 'Discipline'] }, { num: 23, html: 'Check your <strong>bank account before social media</strong>.<br>What gets measured gets improved.', tags: ['Habits', 'Finance'] }, { num: 24, html: 'Buy <strong>time</strong>, not things.<br>Delegate anything that costs less than your hourly rate.', tags: ['Leverage', 'Time'] }, { num: 25, html: "Real wealth isn't money or assets.<br>It's <strong>education and skills</strong>.<br>A skilled person doesn't need inheritance.", tags: ['Wealth', 'Skills'] }, { num: 26, html: 'Focus is the number of things you say <strong>no</strong> to.<br>Success in one thing beats <strong>seven fake income streams</strong>.', tags: ['Focus', 'Strategy'] }, { num: 27, html: 'The real work starts <strong>after motivation disappears</strong>.', tags: ['Discipline', 'Consistency'] }, { num: 28, html: "Don't follow your passion.<br>Follow the thing you're <strong>good at and people are willing to pay for</strong>.", tags: ['Career', 'Clarity'] }, { num: 29, html: "Don't focus on networking early.<br>Focus on getting good at your work.<br>When you succeed, <strong>people will come to you</strong>.", tags: ['Growth', 'Skill-First'] }, { num: 30, html: 'The person who <strong>shows up every day</strong> is very hard to beat.', tags: ['Consistency', 'Discipline'] }];
+    /* ═══ QUOTES (loaded from Firestore) ═══ */
+    let QUOTES_FS = [];
     let quoteIdx = 0, quoteAnchored = false;
-    function renderQuote() { const today = new Date(); today.setHours(0, 0, 0, 0); const start = new Date(CFG.ramadanStart); start.setHours(0, 0, 0, 0); const rd = Math.min(Math.max(Math.floor((today - start) / 864e5) + 1, 1), 30); if (!quoteAnchored) { quoteIdx = rd - 1; quoteAnchored = true } const q = QUOTES[quoteIdx % 30]; document.getElementById('qtext').innerHTML = q.html; document.getElementById('qnum').textContent = `${q.num} / 30`; document.getElementById('qtags').innerHTML = q.tags.map(t => `<span class="qtag">${t}</span>`).join('') }
-    function prevQuote() { quoteIdx = (quoteIdx - 1 + 30) % 30; renderQuote() }
-    function nextQuote() { quoteIdx = (quoteIdx + 1) % 30; renderQuote() }
+
+    async function loadQuotes() {
+      try {
+        const snap = await userRef().collection('quotes').orderBy('num').get();
+        QUOTES_FS = snap.docs.map(d => d.data());
+      } catch (e) {
+        console.warn('Quotes load failed', e);
+        QUOTES_FS = [];
+      }
+    }
+
+    function renderQuote() {
+      if (!QUOTES_FS.length) return;
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const start = new Date(CFG.ramadanStart); start.setHours(0, 0, 0, 0);
+      const rd = Math.min(Math.max(Math.floor((today - start) / 864e5) + 1, 1), 30);
+      if (!quoteAnchored) { quoteIdx = rd - 1; quoteAnchored = true; }
+      const q = QUOTES_FS[quoteIdx % QUOTES_FS.length];
+      document.getElementById('qtext').innerHTML = q.html;
+      document.getElementById('qnum').textContent = `${q.num} / ${QUOTES_FS.length}`;
+      document.getElementById('qtags').innerHTML = q.tags.map(t => `<span class="qtag">${t}</span>`).join('');
+    }
+    function prevQuote() { quoteIdx = (quoteIdx - 1 + QUOTES_FS.length) % QUOTES_FS.length; renderQuote(); }
+    function nextQuote() { quoteIdx = (quoteIdx + 1) % QUOTES_FS.length; renderQuote(); }
     function renderHeader() { document.getElementById('h-date').textContent = friendlyDate() }
     let toastTimer; function showToast(msg) { const t = document.getElementById('toast'); t.innerHTML = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2200) }
     setInterval(() => renderPrayers(), 1000);
     setInterval(() => { renderCups(); renderPills() }, 30000);
+
     /* ═══ INIT ═══ */
+
     async function init() {
       showLoader();
-      seedData(); refreshToday(); ST = loadState();
-      renderHeader(); renderScoreStrip(); renderWeight(); renderProgress(); renderBody(); renderCups(); renderWork(); renderQuote(); renderWeekSection();
+      refreshToday();
+
+      ST = await loadTodayFromFs();
+      DAY_CACHE[TODAY] = ST;
+      renderHeader();
+      renderScoreStrip();
+      renderWeight();
+      renderProgress();
+      renderBody();
+      renderCups();
+      renderWork();
+      renderQuote();
+      await renderWeekSection();
+      await loadQuotes();
       await loadPrayers();
       renderPrayers(); renderCups(); renderPills(); renderProgress(); renderDayArch();
       loadTomorrowFajr();
+      subscribeToday();
       hideLoader();
     }
+
     /* ═══ AUTH ═══ */
     const ALLOWED_UID = 'vnJbfZMnIdRlddIwZDptqANz1SK2';
     showLoader();
     auth.onAuthStateChanged(user => {
       if (user) {
         if (user.uid !== ALLOWED_UID) { auth.signOut(); document.getElementById('login-screen').style.display = 'flex'; document.getElementById('app').style.display = 'none'; document.getElementById('login-error').style.display = 'block'; hideLoader(); return }
+        CURRENT_UID = user.uid;
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app').style.display = 'block';
         init();
