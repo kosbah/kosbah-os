@@ -3,20 +3,14 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>Kosbah Vision Dashboard</title>
-
-  <link rel="icon" type="image/svg+xml" href='data:image/svg+xml;utf8,
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-    <rect width="64" height="64" rx="14" fill="%230F172A"/>
-    <rect x="8" y="8" width="48" height="48" rx="10" fill="%23111827" stroke="%23F59E0B" stroke-width="2"/>
-    <circle cx="32" cy="32" r="18" fill="none" stroke="%23F59E0B" stroke-width="3" stroke-dasharray="24 13" stroke-linecap="round"/>
-    <circle cx="32" cy="32" r="11" fill="none" stroke="%23F9FAFB" stroke-width="2" stroke-dasharray="15 8" stroke-linecap="round"/>
-    <circle cx="32" cy="32" r="4" fill="%23F59E0B"/>
-  </svg>'>
-
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+  <title>Kosbah OS</title>
+  <link rel="icon" type="image/svg+xml"
+    href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="%230F172A"/><rect x="8" y="8" width="48" height="48" rx="10" fill="%23111827" stroke="%23F59E0B" stroke-width="2"/><circle cx="32" cy="32" r="18" fill="none" stroke="%23F59E0B" stroke-width="3" stroke-dasharray="24 13" stroke-linecap="round"/><circle cx="32" cy="32" r="11" fill="none" stroke="%23F9FAFB" stroke-width="2" stroke-dasharray="15 8" stroke-linecap="round"/><circle cx="32" cy="32" r="4" fill="%23F59E0B"/></svg>'>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <style>
-    /* ─── TOKENS ─────────────────────────────────────────────── */
     :root {
       --bg: #0F172A;
       --surface: #111827;
@@ -36,7 +30,7 @@
       --bdim: rgba(59, 130, 246, .12);
       --bborder: rgba(59, 130, 246, .30);
       --vdim: rgba(139, 92, 246, .12);
-      --vborder: rgba(139, 92, 246, .30);
+      --vborder: rgba(139, 92, 246, .30)
     }
 
     *,
@@ -44,12 +38,12 @@
     *::after {
       box-sizing: border-box;
       margin: 0;
-      padding: 0;
+      padding: 0
     }
 
     html {
       font-size: 16px;
-      -webkit-tap-highlight-color: transparent;
+      -webkit-tap-highlight-color: transparent
     }
 
     body {
@@ -57,10 +51,45 @@
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       min-height: 100vh;
-      padding-bottom: 48px;
+      padding-bottom: 48px
     }
 
-    /* ─── HEADER ─────────────────────────────────────────────── */
+    #global-loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      z-index: 99999;
+      background: rgba(245, 158, 11, .15);
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity .3s;
+      pointer-events: none
+    }
+
+    #global-loader.active {
+      opacity: 1
+    }
+
+    #global-loader .bar {
+      width: 40%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      animation: lslide 1.2s ease-in-out infinite;
+      border-radius: 2px
+    }
+
+    @keyframes lslide {
+      0% {
+        transform: translateX(-100%)
+      }
+
+      100% {
+        transform: translateX(350%)
+      }
+    }
+
     #hdr {
       position: sticky;
       top: 0;
@@ -73,7 +102,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 10px;
+      gap: 10px
     }
 
     .h-brand {
@@ -82,60 +111,79 @@
       text-transform: uppercase;
       letter-spacing: .12em;
       color: var(--primary);
-      margin-bottom: 1px;
+      margin-bottom: 1px
     }
 
     .h-date {
       font-size: 14px;
       font-weight: 800;
       color: var(--text);
-      line-height: 1.2;
+      line-height: 1.2
     }
 
     .h-sub {
       font-size: 11px;
       color: var(--muted);
-      margin-top: 2px;
-    }
-
-    .h-right {
-      text-align: right;
+      margin-top: 2px
     }
 
     .h-hijri {
       font-size: 14px;
       font-weight: 800;
-      color: var(--text);
+      color: var(--text)
     }
 
-    /* ─── LAYOUT ─────────────────────────────────────────────── */
     main {
       padding: 14px;
       max-width: 880px;
       margin: 0 auto;
       display: flex;
       flex-direction: column;
-      gap: 13px;
+      gap: 13px
     }
 
     .row2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 13px;
+      gap: 13px
     }
 
     @media(max-width:580px) {
       .row2 {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr
       }
     }
 
-    /* ─── CARDS ──────────────────────────────────────────────── */
+    .section-divider {
+      margin-top: 10px;
+      margin-bottom: 2px
+    }
+
+    .sd-line {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--pborder), transparent);
+      margin-bottom: 12px
+    }
+
+    .sd-title {
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .18em;
+      color: var(--primary)
+    }
+
+    .sd-sub {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 3px
+    }
+
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 18px;
+      padding: 18px
     }
 
     .card-label {
@@ -144,10 +192,209 @@
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: .08em;
-      margin-bottom: 14px;
+      margin-bottom: 14px
     }
 
-    /* ─── PRAYER PANEL ───────────────────────────────────────── */
+    .score-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px
+    }
+
+    @media(max-width:500px) {
+      .score-strip {
+        grid-template-columns: repeat(2, 1fr)
+      }
+    }
+
+    .score-ring-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 8px;
+      text-align: center;
+      position: relative
+    }
+
+    .sr-svg {
+      width: 68px;
+      height: 68px;
+      margin: 0 auto 6px;
+      display: block
+    }
+
+    .sr-pct {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 68px;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 900;
+      pointer-events: none
+    }
+
+    .sr-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-top: 2px
+    }
+
+    .sr-compare {
+      font-size: 9px;
+      color: var(--muted);
+      margin-top: 3px
+    }
+
+    .weight-card {
+      display: flex;
+      gap: 16px;
+      align-items: stretch;
+      flex-wrap: wrap
+    }
+
+    .wc-left {
+      flex: 1;
+      min-width: 180px
+    }
+
+    .wc-right {
+      flex: 1;
+      min-width: 180px
+    }
+
+    .wc-big {
+      font-size: 36px;
+      font-weight: 900;
+      color: var(--text);
+      line-height: 1
+    }
+
+    .wc-big small {
+      font-size: 16px;
+      color: var(--muted);
+      font-weight: 600
+    }
+
+    .wc-delta {
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 4px
+    }
+
+    .wc-delta.loss {
+      color: var(--green)
+    }
+
+    .wc-delta.gain {
+      color: var(--red)
+    }
+
+    .wc-delta.flat {
+      color: var(--muted)
+    }
+
+    .wc-input-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      align-items: center
+    }
+
+    .wc-input {
+      width: 90px;
+      padding: 8px 10px;
+      font-size: 14px;
+      font-weight: 700;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      outline: none;
+      text-align: center
+    }
+
+    .wc-input:focus {
+      border-color: var(--primary)
+    }
+
+    .wc-save-btn {
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      background: var(--primary);
+      color: #0F172A;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity .15s
+    }
+
+    .wc-save-btn:hover {
+      opacity: .85
+    }
+
+    .wc-milestone {
+      margin-top: 10px
+    }
+
+    .wc-mile-next {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary)
+    }
+
+    .wc-mile-end {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 2px
+    }
+
+    .w7-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      margin-top: 4px
+    }
+
+    .w7-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .w7-table tr:last-child td {
+      border-bottom: none
+    }
+
+    .w7-table .w7-day {
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 10px
+    }
+
+    .w7-table .w7-val {
+      font-weight: 800;
+      text-align: right;
+      font-size: 13px
+    }
+
+    .w7-table .w7-today {
+      color: var(--primary)
+    }
+
+    .w7-table .w7-empty {
+      color: var(--muted);
+      opacity: .4;
+      text-align: right
+    }
+
     .pr-row {
       display: flex;
       align-items: center;
@@ -156,121 +403,88 @@
       border-radius: 8px;
       margin-bottom: 4px;
       font-size: 13px;
-      transition: all .15s;
+      transition: all .15s
     }
 
     .pr-row.done {
-      opacity: .42;
+      opacity: .42
     }
 
     .pr-row.active {
       background: var(--pdim);
-      border: 1px solid var(--pborder);
+      border: 1px solid var(--pborder)
     }
 
     .pr-row.upcoming {
       background: var(--surface2);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border)
     }
 
     .pr-icon {
       font-size: 15px;
-      min-width: 20px;
+      min-width: 20px
     }
 
     .pr-name {
       font-weight: 600;
       flex: 1;
-      font-size: 13px;
+      font-size: 13px
     }
 
     .pr-time {
       font-size: 13px;
       font-weight: 700;
-      white-space: nowrap;
+      white-space: nowrap
     }
 
     .pr-time.t-done {
-      color: var(--muted);
+      color: var(--muted)
     }
 
     .pr-time.t-next {
-      color: var(--primary);
+      color: var(--primary)
     }
 
     .pr-badge {
       font-size: 10px;
       padding: 2px 7px;
       border-radius: 20px;
-      white-space: nowrap;
+      white-space: nowrap
     }
 
     .pr-badge.b-done {
       background: var(--gdim);
       border: 1px solid var(--gborder);
-      color: #6ee7b7;
+      color: #6ee7b7
     }
 
-    .pr-badge.b-next {
-      background: var(--pdim);
-      border: 1px solid var(--pborder);
-      color: var(--primary);
+    .pr-name-next {
+      color: var(--primary)
     }
 
-    #next-bar {
-      margin-top: 9px;
-      padding: 10px 13px;
-      background: var(--pdim);
-      border: 1px solid var(--pborder);
-      border-radius: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .nb-left {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-    }
-
-    .nb-prayer {
-      font-size: 14px;
-      font-weight: 800;
-      color: var(--primary);
-    }
-
-    .nb-dash {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .nb-countdown {
-      font-size: 13px;
+    .pr-cdown {
+      font-size: 10px;
       font-weight: 700;
       color: var(--text);
       font-variant-numeric: tabular-nums;
-      letter-spacing: -.01em;
+      background: var(--pdim);
+      border: 1px solid var(--pborder);
+      border-radius: 6px;
+      padding: 2px 7px;
+      white-space: nowrap;
+      flex-shrink: 0
     }
 
-    .nb-tag {
-      font-size: 10px;
-      color: var(--muted);
-    }
-
-    /* ─── DUAL PROGRESS RINGS ────────────────────────────────── */
     .progress-card {
       display: flex;
-      flex-direction: column;
+      flex-direction: column
     }
 
     .dual-rings {
       display: flex;
       gap: 10px;
       justify-content: center;
-      margin-bottom: 10px;
+      margin-bottom: 10px
     }
 
     .ring-wrap {
@@ -278,18 +492,18 @@
       flex-direction: column;
       align-items: center;
       flex: 1;
-      max-width: 130px;
+      max-width: 130px
     }
 
     .ring-svg-wrap {
       position: relative;
       width: 112px;
-      height: 112px;
+      height: 112px
     }
 
     .ring-svg-wrap svg {
       width: 100%;
-      height: 100%;
+      height: 100%
     }
 
     .ring-center {
@@ -298,28 +512,28 @@
       left: 50%;
       transform: translate(-50%, -50%);
       text-align: center;
-      pointer-events: none;
+      pointer-events: none
     }
 
     .ring-day {
       font-size: 30px;
       font-weight: 900;
-      line-height: 1;
+      line-height: 1
     }
 
     .ring-day.c-amber {
-      color: var(--primary);
+      color: var(--primary)
     }
 
     .ring-day.c-blue {
-      color: var(--blue);
+      color: var(--blue)
     }
 
     .ring-of {
       font-size: 11px;
       font-weight: 700;
       color: var(--muted);
-      margin-top: 1px;
+      margin-top: 1px
     }
 
     .ring-label {
@@ -327,14 +541,14 @@
       font-weight: 800;
       color: var(--text);
       text-align: center;
-      margin-top: 6px;
+      margin-top: 6px
     }
 
     .ring-sub {
       font-size: 10px;
       color: var(--muted);
       text-align: center;
-      margin-top: 2px;
+      margin-top: 2px
     }
 
     .prog-eid {
@@ -342,16 +556,42 @@
       font-weight: 800;
       color: var(--primary);
       text-align: center;
-      margin-top: 6px;
+      margin-top: 6px
     }
 
-    /* ─── HEALTH PACK ────────────────────────────────────────── */
+    .fajr-strip {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 14px;
+      padding: 10px 13px;
+      background: var(--gdim);
+      border: 1px solid var(--gborder);
+      border-radius: 10px;
+      gap: 10px
+    }
+
+    .fajr-strip .fs-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #6ee7b7;
+      text-transform: uppercase;
+      letter-spacing: .07em
+    }
+
+    .fajr-strip .fs-time {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--green);
+      font-family: monospace
+    }
+
     .pack-sect {
-      margin-bottom: 18px;
+      margin-bottom: 18px
     }
 
     .pack-sect:last-child {
-      margin-bottom: 0;
+      margin-bottom: 0
     }
 
     .pack-title {
@@ -363,12 +603,15 @@
       margin-bottom: 10px;
       padding-bottom: 6px;
       border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center
     }
 
     .body-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(125px, 1fr));
-      gap: 8px;
+      gap: 8px
     }
 
     .body-item {
@@ -381,23 +624,23 @@
       border-radius: 10px;
       cursor: pointer;
       transition: all .15s;
-      user-select: none;
+      user-select: none
     }
 
     .body-item.checked {
       background: var(--gdim);
-      border-color: var(--gborder);
+      border-color: var(--gborder)
     }
 
     .bi-icon {
-      font-size: 17px;
+      font-size: 17px
     }
 
     .bi-label {
       font-size: 12px;
       font-weight: 600;
       flex: 1;
-      line-height: 1.25;
+      line-height: 1.25
     }
 
     .bi-dot {
@@ -411,20 +654,20 @@
       align-items: center;
       justify-content: center;
       font-size: 9px;
-      transition: all .15s;
+      transition: all .15s
     }
 
     .body-item.checked .bi-dot {
       background: var(--green);
       border-color: var(--green);
-      color: #fff;
+      color: #fff
     }
 
     .cups-row {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      margin-bottom: 8px;
+      margin-bottom: 8px
     }
 
     .cup {
@@ -441,14 +684,14 @@
       user-select: none;
       font-size: 11px;
       font-weight: 700;
-      color: var(--muted);
+      color: var(--muted)
     }
 
     .cup.filled {
       background: var(--bdim);
       border-color: var(--bborder);
       color: #93c5fd;
-      font-size: 17px;
+      font-size: 17px
     }
 
     .cup-hint {
@@ -457,422 +700,214 @@
       padding: 5px 9px;
       background: var(--surface2);
       border-radius: 6px;
-      display: inline-block;
+      display: inline-block
     }
 
     .pills-row {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px
     }
 
-    .pill-card {
-      padding: 12px 10px;
+    .pill-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
       background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: 10px;
       cursor: pointer;
       transition: all .15s;
-      text-align: center;
-      user-select: none;
+      user-select: none
     }
 
-    .pill-card.taken {
+    .pill-item.taken {
       background: var(--vdim);
-      border-color: var(--vborder);
+      border-color: var(--vborder)
     }
 
-    .p-icon {
+    .pill-item .pi-icon {
       font-size: 18px;
-      margin-bottom: 4px;
+      flex-shrink: 0
     }
 
-    .p-time {
+    .pill-item .pi-info {
+      flex: 1;
+      min-width: 0
+    }
+
+    .pill-item .pi-name {
       font-size: 12px;
       font-weight: 800;
-      color: var(--text);
+      color: var(--text)
     }
 
-    .pill-card.taken .p-time {
-      color: #c4b5fd;
+    .pill-item.taken .pi-name {
+      color: #c4b5fd
     }
 
-    .p-anchor {
+    .pill-item .pi-meta {
       font-size: 10px;
       color: var(--muted);
-      margin-top: 2px;
+      margin-top: 1px
     }
 
-    .p-badge {
+    .pill-item .pi-badge {
       font-size: 10px;
       padding: 2px 7px;
       border-radius: 20px;
-      display: inline-block;
-      margin-top: 5px;
+      white-space: nowrap;
+      flex-shrink: 0
     }
 
-    .p-badge.untaken {
+    .pill-item .pi-badge.untaken {
       background: var(--surface);
       border: 1px solid var(--border);
-      color: var(--muted);
+      color: var(--muted)
     }
 
-    .p-badge.taken-b {
+    .pill-item .pi-badge.taken-b {
       background: var(--vdim);
       border: 1px solid var(--vborder);
-      color: #c4b5fd;
+      color: #c4b5fd
     }
 
-    /* ─── PRAYER INLINE COUNTDOWN ───────────────────────────── */
-    .pr-name-next {
-      color: var(--primary);
-    }
-
-    .pr-cdown {
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--text);
-      font-variant-numeric: tabular-nums;
-      background: var(--pdim);
-      border: 1px solid var(--pborder);
-      border-radius: 6px;
-      padding: 2px 7px;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-
-    /* ─── STREAK JOURNEY ─────────────────────────────────────── */
-    .streak-wrap {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 14px 16px;
-      margin-top: 16px;
-    }
-
-    .sj-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 4px;
-    }
-
-    .sj-title {
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: .07em;
-      color: var(--text);
-    }
-
-    .sj-tagline {
-      font-size: 11px;
-      color: var(--muted);
-      margin-bottom: 14px;
-    }
-
-    .sj-track {
-      display: flex;
-      align-items: center;
-      width: 100%;
-    }
-
-    .sj-step {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      flex-shrink: 0;
-    }
-
-    .sj-dot {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      border: 2px solid var(--border);
-      background: var(--surface);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--muted);
-      transition: all .25s;
-    }
-
-    .sj-dot.reached {
-      background: var(--gdim);
-      border-color: var(--gborder);
-      color: #6ee7b7;
-    }
-
-    .sj-dot.current {
-      background: var(--green);
-      border-color: var(--green);
-      color: #fff;
+    .pill-item .pi-del {
       font-size: 14px;
-      box-shadow: 0 0 0 4px rgba(16, 185, 129, .2);
-    }
-
-    .sj-step-label {
-      font-size: 9px;
       color: var(--muted);
-      margin-top: 5px;
-      text-align: center;
-      font-weight: 600;
-      width: 38px;
-    }
-
-    .sj-line {
-      flex: 1;
-      height: 2px;
-      background: var(--border);
-      position: relative;
-      top: -10px;
-    }
-
-    .sj-line.passed {
-      background: var(--gborder);
-    }
-
-    .sj-progress-label {
-      font-size: 11px;
-      color: var(--green);
-      font-weight: 700;
-      margin-top: 10px;
-      text-align: center;
-    }
-
-    .sj-progress-label.zero {
-      color: var(--muted);
-    }
-
-    /* ─── DAY ARCHITECTURE ───────────────────────────────────── */
-    .arch-context {
-      font-size: 11px;
-      color: var(--muted);
-      margin-bottom: 12px;
-    }
-
-    .timeline-outer {
-      position: relative;
-      height: 34px;
-      background: var(--surface2);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .t-block {
-      position: absolute;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 8px;
-      font-weight: 700;
-      color: rgba(255, 255, 255, .75);
-      letter-spacing: .04em;
-      overflow: hidden;
-      white-space: nowrap;
-      padding: 0 3px;
-    }
-
-    .t-sleep {
-      background: #2a1a5e;
-    }
-
-    .t-suhoor {
-      background: #0f2e1a;
-    }
-
-    .t-work {
-      background: #2e1515;
-    }
-
-    .t-recovery {
-      background: #102a1a;
-    }
-
-    .t-water {
-      background: #0f2040;
-    }
-
-    .hour-axis {
-      display: flex;
-      justify-content: space-between;
-      padding: 0 2px;
-      margin-top: 5px;
-    }
-
-    .h-tick {
-      font-size: 9px;
-      color: var(--muted);
-    }
-
-    .prayer-marker-row {
-      position: relative;
-      height: 50px;
-      margin-top: 2px;
-    }
-
-    .pm-item {
-      position: absolute;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      transform: translateX(-50%);
-    }
-
-    .pm-line {
-      width: 1px;
-      height: 8px;
-      margin-bottom: 2px;
-    }
-
-    .pm-icon {
-      font-size: 9px;
-      line-height: 1;
-    }
-
-    .pm-label {
-      font-size: 8px;
-      font-weight: 700;
-      margin-top: 1px;
-    }
-
-    .pm-time {
-      font-size: 8px;
-      color: var(--muted);
-    }
-
-    .arch-stats {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      margin-top: 12px;
-    }
-
-    .ss-item {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 9px 6px;
-      text-align: center;
-    }
-
-    .ss-val {
-      font-size: 14px;
-      font-weight: 800;
-      color: var(--text);
-    }
-
-    .ss-lbl {
-      font-size: 9px;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-
-    .arch-legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 12px;
-      padding-top: 10px;
-      border-top: 1px solid var(--border);
-    }
-
-    .arch-legend-item {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 10px;
-      color: var(--muted);
-    }
-
-    .leg-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 3px;
-      flex-shrink: 0;
-    }
-
-    /* ─── HEALTH JOURNEY (30 manual slots) ──────────────────── */
-    .hj-wrap {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 14px 16px;
-      margin-top: 16px;
-    }
-
-    .hj-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 4px;
-    }
-
-    .hj-title {
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: .07em;
-      color: var(--text);
-    }
-
-    .hj-tagline {
-      font-size: 11px;
-      color: var(--muted);
-      margin-bottom: 12px;
-    }
-
-    .hj-grid {
-      display: grid;
-      grid-template-columns: repeat(10, 1fr);
-      gap: 5px;
-    }
-
-    .hj-dot {
-      aspect-ratio: 1;
-      border-radius: 50%;
       cursor: pointer;
+      padding: 4px;
+      opacity: .5;
+      transition: opacity .15s;
+      flex-shrink: 0
+    }
+
+    .pill-item .pi-del:hover {
+      opacity: 1;
+      color: var(--red)
+    }
+
+    .add-med-btn {
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 9px;
-      font-weight: 700;
-      color: rgba(255, 255, 255, .9);
-      transition: transform .1s, background .15s;
-      user-select: none;
-      box-sizing: border-box;
-    }
-
-    .hj-dot:active {
-      transform: scale(.85);
-    }
-
-    .hj-stats {
+      gap: 6px;
+      padding: 10px;
+      background: var(--surface2);
+      border: 1px dashed var(--muted);
+      border-radius: 10px;
+      cursor: pointer;
       font-size: 11px;
-      color: var(--green);
       font-weight: 700;
-      margin-top: 10px;
-      text-align: center;
-    }
-
-    .hj-stats.zero {
       color: var(--muted);
+      transition: all .15s
     }
 
-    /* ─── WORK SESSIONS ──────────────────────────────────────── */
+    .add-med-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary)
+    }
+
+    .med-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, .6);
+      z-index: 9998;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px
+    }
+
+    .med-modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      width: 100%;
+      max-width: 360px
+    }
+
+    .med-modal h3 {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 14px
+    }
+
+    .med-modal label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 4px;
+      margin-top: 10px
+    }
+
+    .med-modal input,
+    .med-modal select {
+      width: 100%;
+      padding: 8px 10px;
+      font-size: 13px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      outline: none
+    }
+
+    .med-modal input:focus,
+    .med-modal select:focus {
+      border-color: var(--primary)
+    }
+
+    .med-modal select {
+      appearance: none;
+      -webkit-appearance: none
+    }
+
+    .med-modal-btns {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px
+    }
+
+    .med-modal-btns button {
+      flex: 1;
+      padding: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer
+    }
+
+    .med-modal-btns .mm-save {
+      background: var(--primary);
+      color: #0F172A
+    }
+
+    .med-modal-btns .mm-cancel {
+      background: var(--surface2);
+      color: var(--muted);
+      border: 1px solid var(--border)
+    }
+
     .work-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
-      margin-bottom: 4px;
+      margin-bottom: 4px
     }
 
     @media(max-width:500px) {
       .work-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr
       }
     }
 
@@ -880,7 +915,7 @@
       background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 14px;
+      padding: 14px
     }
 
     .wt-label {
@@ -889,7 +924,7 @@
       text-transform: uppercase;
       letter-spacing: .08em;
       color: var(--muted);
-      margin-bottom: 10px;
+      margin-bottom: 10px
     }
 
     .wt-btn {
@@ -901,43 +936,91 @@
       border-radius: 8px;
       cursor: pointer;
       transition: opacity .15s;
-      margin-bottom: 10px;
+      margin-bottom: 10px
     }
 
     .wt-btn:hover {
-      opacity: .88;
+      opacity: .88
     }
 
     .wt-btn:active {
-      opacity: .72;
+      opacity: .72
     }
 
     .wt-btn-growth {
       background: var(--primary);
-      color: #0F172A;
+      color: #0F172A
     }
 
     .wt-btn-upwork {
       background: var(--blue);
-      color: #fff;
+      color: #fff
     }
 
-    .wt-stats {
+    .session-dots-row {
       display: flex;
-      gap: 16px;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-bottom: 10px
     }
 
-    .wt-stat-val {
-      font-size: 22px;
-      font-weight: 900;
-      color: var(--text);
-      line-height: 1;
+    .sesh-dot {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      border: 2px solid var(--border);
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all .15s;
+      user-select: none
     }
 
-    .wt-stat-lbl {
-      font-size: 10px;
+    .sesh-dot:active {
+      transform: scale(.85)
+    }
+
+    .sesh-dot.done-g {
+      background: var(--pdim);
+      border-color: var(--pborder)
+    }
+
+    .sesh-dot.done-u {
+      background: var(--bdim);
+      border-color: var(--bborder)
+    }
+
+    .sesh-dot.add {
+      border-style: dashed;
+      border-color: var(--muted);
       color: var(--muted);
-      margin-top: 2px;
+      font-size: 20px
+    }
+
+    .sesh-dot.add:hover {
+      border-color: var(--primary);
+      color: var(--primary)
+    }
+
+    .sesh-total {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px
+    }
+
+    .sesh-total span {
+      font-weight: 800
+    }
+
+    .sesh-total span.c-g {
+      color: var(--primary)
+    }
+
+    .sesh-total span.c-u {
+      color: var(--blue)
     }
 
     .wt-log {
@@ -946,7 +1029,7 @@
       flex-direction: column;
       gap: 4px;
       max-height: 72px;
-      overflow-y: auto;
+      overflow-y: auto
     }
 
     .wt-log-item {
@@ -957,10 +1040,496 @@
       border: 1px solid var(--border);
       border-radius: 5px;
       display: flex;
-      justify-content: space-between;
+      justify-content: space-between
     }
 
-    /* ─── TOAST ──────────────────────────────────────────────── */
+    .week-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px
+    }
+
+    .week-nav-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 1px solid var(--pborder);
+      background: var(--pdim);
+      color: var(--primary);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .15s
+    }
+
+    .week-nav-btn:hover {
+      background: rgba(245, 158, 11, .22)
+    }
+
+    .week-nav-btn:disabled {
+      opacity: .3;
+      cursor: default
+    }
+
+    .week-nav-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+      flex: 1;
+      text-align: center
+    }
+
+    .week-strip {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin-bottom: 14px
+    }
+
+    .ws-day {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 4px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .15s;
+      user-select: none
+    }
+
+    .ws-day:hover {
+      border-color: var(--pborder)
+    }
+
+    .ws-day.today {
+      border-color: var(--primary);
+      background: var(--pdim)
+    }
+
+    .ws-day.selected {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px var(--primary)
+    }
+
+    .ws-day.future {
+      opacity: .35;
+      cursor: default
+    }
+
+    .ws-day-name {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase
+    }
+
+    .ws-day-num {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--text);
+      margin: 2px 0
+    }
+
+    .ws-day-bar {
+      height: 4px;
+      border-radius: 2px;
+      background: var(--border);
+      margin: 4px auto 0;
+      width: 80%;
+      overflow: hidden
+    }
+
+    .ws-day-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width .3s
+    }
+
+    .ws-day-pct {
+      font-size: 9px;
+      font-weight: 700;
+      margin-top: 3px
+    }
+
+    .day-detail {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 14px
+    }
+
+    .dd-header {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center
+    }
+
+    .dd-close {
+      font-size: 18px;
+      cursor: pointer;
+      color: var(--muted);
+      padding: 4px
+    }
+
+    .dd-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 8px
+    }
+
+    .dd-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px
+    }
+
+    .dd-item-label {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 4px
+    }
+
+    .dd-item-val {
+      font-size: 14px;
+      font-weight: 800
+    }
+
+    .week-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px
+    }
+
+    .week-table th {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      padding: 8px 6px;
+      text-align: center;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .week-table td {
+      padding: 10px 6px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600
+    }
+
+    .week-table tr:last-child td {
+      border-bottom: none
+    }
+
+    .week-table .wt-current {
+      background: var(--pdim)
+    }
+
+    .week-table .wt-label-cell {
+      text-align: left;
+      font-weight: 700;
+      color: var(--text);
+      font-size: 11px
+    }
+
+    .week-table .wt-empty {
+      color: var(--muted);
+      opacity: .4
+    }
+
+    .wt-pct-good {
+      color: var(--green)
+    }
+
+    .wt-pct-ok {
+      color: var(--primary)
+    }
+
+    .wt-pct-bad {
+      color: var(--red)
+    }
+
+    .view-month-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--pdim);
+      border: 1px solid var(--pborder);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all .15s;
+      margin-top: 10px
+    }
+
+    .view-month-btn:hover {
+      background: rgba(245, 158, 11, .22)
+    }
+
+    .month-list {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px
+    }
+
+    .ml-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px
+    }
+
+    .ml-day {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text);
+      min-width: 60px
+    }
+
+    .ml-bar {
+      flex: 1;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden
+    }
+
+    .ml-bar-fill {
+      height: 100%;
+      border-radius: 3px
+    }
+
+    .ml-pct {
+      font-size: 10px;
+      font-weight: 700;
+      min-width: 35px;
+      text-align: right
+    }
+
+    .arch-context {
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 10px
+    }
+
+    .timeline-outer {
+      position: relative;
+      height: 32px;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 2px
+    }
+
+    .t-block {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      color: rgba(255, 255, 255, .6);
+      overflow: hidden;
+      white-space: nowrap
+    }
+
+    .t-sleep {
+      background: #2a1a5e
+    }
+
+    .t-work {
+      background: #2e1515
+    }
+
+    .t-water {
+      background: #0f2e1a
+    }
+
+    .hour-axis {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      color: var(--muted);
+      padding: 2px 0 8px
+    }
+
+    .prayer-marker-row {
+      position: relative;
+      height: 50px;
+      margin-bottom: 10px
+    }
+
+    .pm-item {
+      position: absolute;
+      transform: translateX(-50%);
+      text-align: center
+    }
+
+    .pm-line {
+      width: 1px;
+      height: 14px;
+      margin: 0 auto 2px
+    }
+
+    .pm-icon {
+      font-size: 12px
+    }
+
+    .pm-label {
+      font-size: 8px;
+      font-weight: 800
+    }
+
+    .pm-time {
+      font-size: 8px;
+      color: var(--muted)
+    }
+
+    .arch-stats {
+      display: grid;
+      gap: 8px;
+      margin-top: 6px;
+      grid-template-columns: repeat(3, 1fr)
+    }
+
+    .ss-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center
+    }
+
+    .ss-val {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--text)
+    }
+
+    .ss-lbl {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 2px
+    }
+
+    .arch-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px
+    }
+
+    .arch-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      color: var(--muted)
+    }
+
+    .leg-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px
+    }
+
+    .quote-card {
+      position: relative;
+      overflow: hidden
+    }
+
+    .quote-card::before {
+      content: '"';
+      position: absolute;
+      top: -14px;
+      left: 10px;
+      font-size: 100px;
+      color: rgba(245, 158, 11, .07);
+      font-family: Georgia, serif;
+      line-height: 1;
+      pointer-events: none
+    }
+
+    .qnav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px
+    }
+
+    .qnav-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      border: 1px solid var(--pborder);
+      background: var(--pdim);
+      color: var(--primary);
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .15s
+    }
+
+    .qnav-btn:hover {
+      background: rgba(245, 158, 11, .22)
+    }
+
+    .qnum {
+      font-size: 11px;
+      color: var(--muted)
+    }
+
+    .qtext {
+      font-size: 14px;
+      line-height: 1.68;
+      color: var(--text);
+      position: relative;
+      z-index: 1
+    }
+
+    .qtext strong {
+      color: var(--primary)
+    }
+
+    .qtags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 12px
+    }
+
+    .qtag {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: var(--pdim);
+      border: 1px solid var(--pborder);
+      color: var(--primary)
+    }
+
     #toast {
       position: fixed;
       bottom: 24px;
@@ -977,198 +1546,20 @@
       opacity: 0;
       transition: opacity .3s;
       pointer-events: none;
-      white-space: nowrap;
+      white-space: nowrap
     }
 
     #toast.show {
-      opacity: 1;
+      opacity: 1
     }
 
     .loading {
       text-align: center;
       padding: 16px;
       font-size: 12px;
-      color: var(--muted);
+      color: var(--muted)
     }
 
-    /* ─── WORK SESSION STATS ─────────────────────────────────── */
-    .session-dots-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 7px;
-      margin-bottom: 10px;
-    }
-
-    .sesh-dot {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      border: 2px solid var(--border);
-      background: var(--surface2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      cursor: pointer;
-      transition: all .15s;
-      user-select: none;
-    }
-
-    .sesh-dot:active {
-      transform: scale(.85);
-    }
-
-    .sesh-dot.done-g {
-      background: var(--pdim);
-      border-color: var(--pborder);
-    }
-
-    .sesh-dot.done-u {
-      background: var(--bdim);
-      border-color: var(--bborder);
-    }
-
-    .sesh-dot.add {
-      border-style: dashed;
-      border-color: var(--muted);
-      color: var(--muted);
-      font-size: 20px;
-    }
-
-    .sesh-dot.add:hover {
-      border-color: var(--primary);
-      color: var(--primary);
-    }
-
-    .sesh-total {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 6px;
-    }
-
-    .sesh-total span {
-      font-weight: 800;
-    }
-
-    .sesh-total span.c-g {
-      color: var(--primary);
-    }
-
-    .sesh-total span.c-u {
-      color: var(--blue);
-    }
-
-    /* ─── TOMORROW FAJR STRIP ────────────────────────────────── */
-    .fajr-strip {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 14px;
-      padding: 10px 13px;
-      background: var(--gdim);
-      border: 1px solid var(--gborder);
-      border-radius: 10px;
-    }
-
-    .fajr-strip .fs-label {
-      font-size: 10px;
-      font-weight: 700;
-      color: #6ee7b7;
-      text-transform: uppercase;
-      letter-spacing: .07em;
-    }
-
-    .fajr-strip .fs-time {
-      font-size: 18px;
-      font-weight: 900;
-      color: var(--green);
-      font-family: monospace;
-    }
-
-    .fajr-strip .fs-sub {
-      font-size: 10px;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-
-    /* ─── QUOTE CARD ─────────────────────────────────────────── */
-    .quote-card {
-      position: relative;
-      overflow: hidden;
-    }
-
-    .quote-card::before {
-      content: '"';
-      position: absolute;
-      top: -14px;
-      left: 10px;
-      font-size: 100px;
-      color: rgba(245, 158, 11, .07);
-      font-family: Georgia, serif;
-      line-height: 1;
-      pointer-events: none;
-    }
-
-    .qnav {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-
-    .qnav-btn {
-      width: 26px;
-      height: 26px;
-      border-radius: 6px;
-      border: 1px solid var(--pborder);
-      background: var(--pdim);
-      color: var(--primary);
-      font-size: 14px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all .15s;
-    }
-
-    .qnav-btn:hover {
-      background: rgba(245, 158, 11, .22);
-    }
-
-    .qnum {
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    .qtext {
-      font-size: 14px;
-      line-height: 1.68;
-      color: var(--text);
-      position: relative;
-      z-index: 1;
-    }
-
-    .qtext strong {
-      color: var(--primary);
-    }
-
-    .qtags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 12px;
-    }
-
-    .qtag {
-      font-size: 10px;
-      padding: 2px 8px;
-      border-radius: 20px;
-      background: var(--pdim);
-      border: 1px solid var(--pborder);
-      color: var(--primary);
-    }
-
-    /* ─── LOGIN SCREEN ───────────────────────────────────────── */
     #login-screen {
       display: flex;
       flex-direction: column;
@@ -1177,7 +1568,7 @@
       min-height: 100vh;
       background: var(--bg);
       padding: 24px;
-      text-align: center;
+      text-align: center
     }
 
     #login-screen .login-brand {
@@ -1186,149 +1577,124 @@
       text-transform: uppercase;
       letter-spacing: .14em;
       color: var(--primary);
-      margin-bottom: 6px;
+      margin-bottom: 6px
     }
 
     #login-screen .login-title {
       font-size: 28px;
       font-weight: 900;
       color: var(--text);
-      margin-bottom: 4px;
+      margin-bottom: 4px
     }
 
     #login-screen .login-sub {
       font-size: 13px;
       color: var(--muted);
-      margin-bottom: 32px;
+      margin-bottom: 28px
     }
 
-    #login-screen .google-btn {
+    #login-screen .login-btn {
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      padding: 14px 32px;
-      border: none;
+      padding: 12px 28px;
+      background: var(--surface);
+      border: 1px solid var(--pborder);
       border-radius: 12px;
-      background: var(--primary);
-      color: #0F172A;
-      font-size: 15px;
-      font-weight: 800;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
       cursor: pointer;
-      transition: opacity .15s, transform .1s;
-      box-shadow: 0 0 20px rgba(245, 158, 11, .25);
+      transition: all .15s
     }
 
-    #login-screen .google-btn:hover {
-      opacity: .9;
+    #login-screen .login-btn:hover {
+      background: var(--pdim);
+      border-color: var(--primary)
     }
 
-    #login-screen .google-btn:active {
-      transform: scale(.97);
-    }
-
-    #login-screen .google-btn svg {
-      width: 20px;
-      height: 20px;
-    }
-
-    #app {
+    #login-error {
       display: none;
+      margin-top: 14px;
+      font-size: 12px;
+      color: var(--red)
     }
   </style>
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 
 <body>
-
-  <!-- ══ LOGIN SCREEN ══ -->
+  <div id="global-loader">
+    <div class="bar"></div>
+  </div>
   <div id="login-screen">
     <div class="login-brand">Kosbah OS</div>
-    <div class="login-title">Kosbah Vision Dashboard</div>
+    <div class="login-title">Welcome Back</div>
     <div class="login-sub">Sign in to access your dashboard</div>
-    <button class="google-btn" onclick="signInWithGoogle()">
-      <svg viewBox="0 0 48 48">
-        <path fill="#FFC107"
-          d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" />
-        <path fill="#FF3D00"
-          d="m6.306 14.691 6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z" />
-        <path fill="#4CAF50"
-          d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" />
-        <path fill="#1976D2"
-          d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z" />
-      </svg>
-      Sign in with Google
-    </button>
-    <p id="login-error" style="display:none;color:#EF4444;font-size:13px;margin-top:16px;">
-      ⛔ Access denied. This dashboard is private.
-    </p>
+    <button class="login-btn" onclick="signInWithGoogle()"><svg width="18" height="18" viewBox="0 0 48 48">
+        <path fill="#EA4335"
+          d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+        <path fill="#4285F4"
+          d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+        <path fill="#FBBC05"
+          d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+        <path fill="#34A853"
+          d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+      </svg>Sign in with Google</button>
+    <div id="login-error">⚠ Access denied. This dashboard is private.</div>
   </div>
-
-  <div id="app">
-    <!-- ══ HEADER ══ -->
-    <header id="hdr" style="
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-">
+  <div id="app" style="display:none;">
+    <header id="hdr">
       <div>
-        <div class="h-brand">Kosbah Vision Dashboard</div>
+        <div class="h-brand">Kosbah OS</div>
         <div class="h-date" id="h-date">—</div>
         <div class="h-sub">
           <div class="h-hijri" id="h-hijri">Loading…</div>
           <div class="h-sub" id="h-hijri-year"></div>
         </div>
-      </div>
-      <button onclick="auth.signOut()" style="
-    background:transparent;
-    border:1px solid rgba(245,158,11,.30);
-    color:var(--muted);
-    font-size:11px;
-    font-weight:700;
-    padding:5px 10px;
-    border-radius:8px;
-    cursor:pointer;
-    letter-spacing:.05em;
-    transition:all .15s;
-  " onmouseover="this.style.color='#F59E0B'" onmouseout="this.style.color='var(--muted)'">
-        ⏏ Sign out
-      </button>
+      </div><button onclick="auth.signOut()"
+        style="background:transparent;border:1px solid rgba(245,158,11,.30);color:var(--muted);font-size:11px;font-weight:700;padding:5px 10px;border-radius:8px;cursor:pointer;letter-spacing:.05em;transition:all .15s"
+        onmouseover="this.style.color='#F59E0B'" onmouseout="this.style.color='var(--muted)'">⏏ Sign out</button>
     </header>
-
     <main>
-
-      <!-- ── Row: Prayers + Dual Progress ── -->
+      <div class="section-divider">
+        <div class="sd-line"></div>
+        <div class="sd-title">Today's Snapshot</div>
+        <div class="sd-sub">Your day at a glance — scores update live</div>
+      </div>
+      <div class="score-strip" id="score-strip"></div>
+      <div class="card">
+        <div class="card-label">⚖️ Weight Tracker</div>
+        <div class="weight-card">
+          <div class="wc-left">
+            <div class="wc-big" id="wc-today">—<small> kg</small></div>
+            <div class="wc-delta" id="wc-delta"></div>
+            <div class="wc-input-row"><input type="number" step="0.1" class="wc-input" id="wc-input"
+                placeholder="112.0"><button class="wc-save-btn" onclick="saveWeight()">Save</button></div>
+            <div class="wc-milestone" id="wc-milestone"></div>
+          </div>
+          <div class="wc-right">
+            <div id="wc-week-table"></div>
+          </div>
+        </div>
+      </div>
+      <div class="section-divider">
+        <div class="sd-line"></div>
+        <div class="sd-title">Take Action</div>
+        <div class="sd-sub">Prayers, health, and deep work — do the work now</div>
+      </div>
       <div class="row2">
-
-        <!-- Prayer Times -->
         <div class="card">
           <div class="card-label">🕌 Prayer Times</div>
           <div id="prayer-list">
             <div class="loading">Fetching…</div>
           </div>
-          <div id="next-bar" style="display:none;">
-            <div class="nb-left">
-              <span class="nb-prayer" id="nb-prayer">—</span>
-              <span class="nb-dash">—</span>
-              <span style="font-size:13px;">⏱</span>
-              <span class="nb-countdown" id="nb-countdown">—</span>
-            </div>
-            <span class="nb-tag" id="nb-tag">Next prayer</span>
-          </div>
+          <div id="next-bar" style="display:none"></div>
         </div>
-
-        <!-- Dual Progress -->
         <div class="card progress-card">
           <div class="card-label">📅 Progress</div>
           <div class="dual-rings">
-
-            <!-- Ramadan ring (amber) -->
             <div class="ring-wrap">
-              <div class="ring-svg-wrap">
-                <svg viewBox="0 0 112 112">
+              <div class="ring-svg-wrap"><svg viewBox="0 0 112 112">
                   <circle cx="56" cy="56" r="44" fill="none" stroke="#1F2937" stroke-width="9" />
                   <circle cx="56" cy="56" r="44" fill="none" stroke="#F59E0B" stroke-width="9" stroke-linecap="round"
                     id="ram-arc" stroke-dasharray="0 276.5" transform="rotate(-90 56 56)" />
@@ -1339,13 +1705,10 @@
                 </div>
               </div>
               <div class="ring-label" id="ram-label">Ramadan</div>
-              <div class="ring-sub" id="ram-sub">1447 AH</div>
+              <div class="ring-sub" id="ram-sub">—</div>
             </div>
-
-            <!-- Month ring (blue) -->
             <div class="ring-wrap">
-              <div class="ring-svg-wrap">
-                <svg viewBox="0 0 112 112">
+              <div class="ring-svg-wrap"><svg viewBox="0 0 112 112">
                   <circle cx="56" cy="56" r="44" fill="none" stroke="#1F2937" stroke-width="9" />
                   <circle cx="56" cy="56" r="44" fill="none" stroke="#3B82F6" stroke-width="9" stroke-linecap="round"
                     id="mon-arc" stroke-dasharray="0 276.5" transform="rotate(-90 56 56)" />
@@ -1358,871 +1721,321 @@
               <div class="ring-label" id="mon-label">March</div>
               <div class="ring-sub" id="mon-sub">— days left</div>
             </div>
-
           </div>
           <div class="prog-eid" id="prog-eid">—</div>
-          <div class="fajr-strip" id="fajr-strip" style="display:none;">
-            <div>
-              <div class="fs-label">🌅 Tomorrow's Fajr</div>
-              <div class="fs-time" id="fajr-time">—:——</div>
-              <div class="fs-sub">Set your alarm · Suhoor before this</div>
-            </div>
-            <div style="text-align:right;">
-              <div style="font-size:10px;color:var(--muted);">Last pill</div>
-              <div style="font-size:14px;font-weight:800;color:var(--green);font-family:monospace;" id="fajr-pill-time">
-                —:——</div>
-            </div>
-          </div>
+          <div class="fajr-strip" id="fajr-strip" style="display:none"><span class="fs-label">🌅 Tomorrow's
+              Fajr</span><span class="fs-time" id="fajr-time">—:——</span></div>
         </div>
-
       </div>
-
-      <!-- ── Health Pack ── -->
       <div class="card">
         <div class="card-label">⚡ Health Pack</div>
-
         <div class="pack-sect">
           <div class="pack-title">Body</div>
           <div class="body-grid" id="body-grid"></div>
         </div>
-
         <div class="pack-sect">
           <div class="pack-title">💧 Water · 8 cups · 4 L · every 50 min</div>
           <div class="cups-row" id="cups-row"></div>
           <div class="cup-hint" id="cup-hint">Loading…</div>
         </div>
-
         <div class="pack-sect">
-          <div class="pack-title">💊 Medicine · prayer-anchored</div>
-          <div class="pills-row" id="pills-row">
-            <div class="loading">Loading times…</div>
-          </div>
-        </div>
-
-        <div id="health-streak-wrap"></div>
-      </div>
-
-      <!-- ── Day Architecture ── -->
-      <div class="card">
-        <div class="card-label">🗓 Day Architecture</div>
-        <div id="day-arch">
-          <div class="loading">Loading prayer times…</div>
+          <div class="pack-title"><span>💊 Medicine</span></div>
+          <div class="pills-row" id="pills-row"></div>
+          <div class="add-med-btn" onclick="openAddMed()">+ Add Medicine</div>
         </div>
       </div>
-
-      <!-- ── Quotes ── -->
-      <div class="card quote-card">
-        <div class="card-label">💡 Principle of the Day</div>
-        <div class="qnav">
-          <button class="qnav-btn" onclick="prevQuote()">‹</button>
-          <span class="qnum" id="qnum">1 / 30</span>
-          <button class="qnav-btn" onclick="nextQuote()">›</button>
-          <span style="flex:1;"></span>
-          <span style="font-size:10px;color:var(--muted);">Day-anchored · swipe to browse</span>
-        </div>
-        <div class="qtext" id="qtext">Loading…</div>
-        <div class="qtags" id="qtags"></div>
-      </div>
-
-      <!-- ── Work Sessions ── -->
       <div class="card">
         <div class="card-label">⚙️ Work Sessions</div>
         <div class="work-grid">
-
           <div class="work-type">
-            <div class="wt-label">🚀 Growth Operating</div>
-            <button class="wt-btn wt-btn-growth" id="growth-btn">▶ Start Session</button>
+            <div class="wt-label">🚀 Growth Operating</div><button class="wt-btn wt-btn-growth" id="growth-btn">▶ Start
+              Session</button>
             <div class="session-dots-row" id="growth-dots"></div>
             <div class="sesh-total" id="growth-total">0 sessions · 0h today</div>
             <div class="wt-log" id="growth-log"></div>
           </div>
-
           <div class="work-type">
-            <div class="wt-label">💼 Upwork</div>
-            <button class="wt-btn wt-btn-upwork" id="upwork-btn">▶ Start Session</button>
+            <div class="wt-label">💼 Upwork</div><button class="wt-btn wt-btn-upwork" id="upwork-btn">▶ Start
+              Session</button>
             <div class="session-dots-row" id="upwork-dots"></div>
             <div class="sesh-total" id="upwork-total">0 sessions · 0h today</div>
             <div class="wt-log" id="upwork-log"></div>
           </div>
-
         </div>
       </div>
-
+      <div class="section-divider">
+        <div class="sd-line"></div>
+        <div class="sd-title">Your Week</div>
+        <div class="sd-sub">Tap any day to see details · navigate weeks</div>
+      </div>
+      <div class="card">
+        <div class="week-nav" id="week-nav"></div>
+        <div class="week-strip" id="week-strip"></div>
+        <div id="day-detail-container"></div>
+        <div style="overflow-x:auto">
+          <table class="week-table" id="week-table"></table>
+        </div>
+        <div id="month-grid-container"></div>
+      </div>
+      <div class="section-divider">
+        <div class="sd-line"></div>
+        <div class="sd-title">Day Architecture</div>
+        <div class="sd-sub">How your 24 hours are structured today</div>
+      </div>
+      <div class="card">
+        <div id="day-arch">
+          <div class="loading">Loading prayer times…</div>
+        </div>
+      </div>
+      <div class="section-divider">
+        <div class="sd-line"></div>
+        <div class="sd-title">Principle of the Day</div>
+        <div class="sd-sub">Your compass — one idea to carry today</div>
+      </div>
+      <div class="card quote-card">
+        <div class="qnav"><button class="qnav-btn" onclick="prevQuote()">‹</button><span class="qnum" id="qnum">1 /
+            30</span><button class="qnav-btn" onclick="nextQuote()">›</button><span style="flex:1"></span><span
+            style="font-size:10px;color:var(--muted)">Day-anchored · swipe to browse</span></div>
+        <div class="qtext" id="qtext">Loading…</div>
+        <div class="qtags" id="qtags"></div>
+      </div>
     </main>
-  </div><!-- end #app -->
+  </div>
+  <div id="med-modal-root"></div>
   <div id="toast"></div>
-
   <script>
-    /* ══════════════════════════════════════════════════════════
-       FIREBASE INIT
-       ══════════════════════════════════════════════════════════ */
-    const firebaseConfig = {
-      apiKey: "AIzaSyB5RvLoSf7QTRZ_5mIzcXd2sFKpdXyratg",
-      authDomain: "axial-analyzer-304321.firebaseapp.com",
-      projectId: "axial-analyzer-304321",
-      storageBucket: "axial-analyzer-304321.firebasestorage.app",
-      messagingSenderId: "921985846891",
-      appId: "1:921985846891:web:850735aea4bfec07bf2b2e"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    function signInWithGoogle() {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider).catch(err => {
-        console.error('Auth error:', err);
-        showToast('⚠ Sign-in failed');
-      });
-    }
-    /* ══════════════════════════════════════════════════════════
-       CONFIG
-       ══════════════════════════════════════════════════════════ */
-    const CFG = {
-      lat: 31.0883, lon: 31.5969, method: 5,
-      ramadanStart: new Date('2026-02-19'),
-      totalDays: 30,
-      waterCups: 8,
-      waterInterval: 50,
-      slackWebhook: 'https://hooks.slack.com/services/YOUR_ACTUAL_URL',
-      n8nWorkWebhook: '', // paste n8n webhook URL after importing WF2
-    };
-
-    /* ══════════════════════════════════════════════════════════
-       TIME UTILS — Cairo timezone (Africa/Cairo, UTC+2)
-       ══════════════════════════════════════════════════════════ */
+    /* ═══ LOADER ═══ */
+    function showLoader() { document.getElementById('global-loader').classList.add('active') }
+    function hideLoader() { document.getElementById('global-loader').classList.remove('active') }
+    /* ═══ FIREBASE ═══ */
+    const firebaseConfig = { apiKey: "AIzaSyB5RvLoSf7QTRZ_5mIzcXd2sFKpdXyratg", authDomain: "axial-analyzer-304321.firebaseapp.com", projectId: "axial-analyzer-304321", storageBucket: "axial-analyzer-304321.firebasestorage.app", messagingSenderId: "921985846891", appId: "1:921985846891:web:850735aea4bfec07bf2b2e" };
+    firebase.initializeApp(firebaseConfig); const auth = firebase.auth(); const db = firebase.firestore();
+    function signInWithGoogle() { showLoader(); const p = new firebase.auth.GoogleAuthProvider(); auth.signInWithPopup(p).catch(e => { console.error('Auth error:', e); hideLoader(); showToast('⚠ Sign-in failed') }) }
+    /* ═══ CONFIG ═══ */
+    const CFG = { lat: 31.0883, lon: 31.5969, method: 5, ramadanStart: new Date('2026-02-19'), totalDays: 30, waterCups: 8, waterInterval: 50, weightGoal: 93, weightMilestoneStep: 2, slackWebhook: '', n8nWorkWebhook: '' };
     const TZ = 'Africa/Cairo';
-
-    // Get current time parts in Cairo timezone
-    function cairoNow() {
-      const now = new Date();
-      const parts = new Intl.DateTimeFormat('en-US', {
-        timeZone: TZ,
-        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
-      }).formatToParts(now);
-      const get = type => parseInt(parts.find(p => p.type === type)?.value || '0', 10);
-      return { h: get('hour'), m: get('minute'), s: get('second') };
-    }
-
-    const toMins = t => { if (!t) return 0; const c = t.split(' ')[0]; const [h, m] = c.split(':').map(Number); return h * 60 + m; };
-    const fromMins = m => { m = ((m % 1440) + 1440) % 1440; return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`; };
+    function cairoNow() { const n = new Date(); const p = new Intl.DateTimeFormat('en-US', { timeZone: TZ, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).formatToParts(n); const g = t => parseInt(p.find(x => x.type === t)?.value || '0', 10); return { h: g('hour'), m: g('minute'), s: g('second') } }
+    const toMins = t => { if (!t) return 0; const c = t.split(' ')[0]; const [h, m] = c.split(':').map(Number); return h * 60 + m };
+    const fromMins = m => { m = ((m % 1440) + 1440) % 1440; return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}` };
     const addMins = (t, d) => fromMins(toMins(t) + d);
-    const nowSecs = () => { const c = cairoNow(); return c.h * 3600 + c.m * 60 + c.s; };
-    const nowMins = () => { const c = cairoNow(); return c.h * 60 + c.m; };
-
-    // Cairo-aware date string (YYYY-MM-DD)
-    function dateStr(offsetDays = 0) {
-      const d = new Date(Date.now() + offsetDays * 864e5);
-      const parts = new Intl.DateTimeFormat('en-US', {
-        timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit'
-      }).formatToParts(d);
-      const get = type => parts.find(p => p.type === type)?.value || '00';
-      return `${get('year')}-${get('month')}-${get('day')}`;
-    }
-
-    function fmt12(t) {
-      if (!t) return '—';
-      const c = t.split(' ')[0]; const [h, m] = c.split(':').map(Number);
-      return `${h % 12 || 12}:${String(m).padStart(2, '0')} <small>${h < 12 ? 'AM' : 'PM'}</small>`;
-    }
-    function fmt12plain(t) {
-      if (!t) return '—';
-      const c = t.split(' ')[0]; const [h, m] = c.split(':').map(Number);
-      return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`;
-    }
-    function fmtSecs(totalSecs) {
-      if (totalSecs <= 0) return '0s';
-      const h = Math.floor(totalSecs / 3600), m = Math.floor((totalSecs % 3600) / 60), s = totalSecs % 60;
-      if (h > 0) return `${h}h ${m}m ${s}s`;
-      if (m > 0) return `${m}m ${s}s`;
-      return `${s}s`;
-    }
-    function ordinal(n) {
-      const s = ['th', 'st', 'nd', 'rd'], v = n % 100;
-      return n + (s[(v - 20) % 10] || s[v] || s[0]);
-    }
-    function friendlyDate(d = new Date()) {
-      return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    }
-    function getDaysInMonth(d = new Date()) {
-      return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-    }
-
-    /* ══════════════════════════════════════════════════════════
-       STATE
-       ══════════════════════════════════════════════════════════ */
-    const TODAY = dateStr();
-    const SK = `ros-${TODAY}`;
-    const HEALTH_SK = 'ros-health-streak';
-    const WORK_SK = 'ros-work-streak';
-
-    function initState() {
-      return {
-        date: TODAY,
-        body: {},
-        cups: Array(CFG.waterCups).fill(false),
-        pills: [false, false, false, false],
-        growth: { sessions: 0, log: [] },
-        upwork: { sessions: 0, log: [] },
-        healthStreakBumped: false,
-        workStreakBumped: false,
-      };
-    }
-    function loadState() { try { return JSON.parse(localStorage.getItem(SK)) || initState(); } catch (e) { return initState(); } }
-    function saveState() { localStorage.setItem(SK, JSON.stringify(ST)); }
-    let ST = loadState();
-    // migrate: ensure 4 pills, work tracks, 30-day health grid
-    if (!ST.pills || ST.pills.length < 4) ST.pills = [false, false, false, false];
-    if (!ST.growth) ST.growth = { sessions: 0, log: [] };
-    if (!ST.upwork) ST.upwork = { sessions: 0, log: [] };
-    if (!ST.healthDays) ST.healthDays = Array(30).fill(false);
-
-    function loadStreak(key) { try { return JSON.parse(localStorage.getItem(key)) || { days: 0, last: '' }; } catch (e) { return { days: 0, last: '' }; } }
-    function saveStreak(key, s) { localStorage.setItem(key, JSON.stringify(s)); }
-    let HEALTH_STREAK = loadStreak(HEALTH_SK);
-    let WORK_STREAK = loadStreak(WORK_SK);
-
-    function bumpStreak(streakObj, key) {
-      if (streakObj.last === TODAY) return;
-      const yest = dateStr(new Date(Date.now() - 864e5));
-      if (streakObj.last === yest) { streakObj.days++; }
-      else { streakObj.days = 1; }
-      streakObj.last = TODAY;
-      saveStreak(key, streakObj);
-    }
-
-    /* ══════════════════════════════════════════════════════════
-       PRAYER API
-       ══════════════════════════════════════════════════════════ */
-    let PRAYERS = null;
-    let TOMORROW_FAJR = null;
-    let HIJRI_DATA = null;
-
-    async function fetchTimings(date = dateStr()) {
-      // Convert YYYY-MM-DD to DD-MM-YYYY for Aladhan API
-      const [y, m, d] = date.split('-');
-      const apiDate = `${d}-${m}-${y}`;
-      const url = `https://api.aladhan.com/v1/timings/${apiDate}?latitude=${CFG.lat}&longitude=${CFG.lon}&method=${CFG.method}`;
-      const r = await fetch(url); if (!r.ok) throw new Error('API');
-      return (await r.json()).data;
-    }
-
-    async function loadPrayers() {
-      try {
-        const data = await fetchTimings();
-        PRAYERS = data.timings;
-        HIJRI_DATA = data.date.hijri;
-        const hDay = parseInt(HIJRI_DATA.day, 10);
-        document.getElementById('h-hijri').textContent = `${ordinal(hDay)} ${HIJRI_DATA.month.en} ${HIJRI_DATA.year}`;
-        document.getElementById('h-hijri-year').textContent = '';
-        // Refresh header sub + Ramadan ring sub with accurate API data
-        renderProgress();
-      } catch (e) {
-        PRAYERS = { Fajr: '04:42', Dhuhr: '12:04', Asr: '15:27', Maghrib: '18:00', Isha: '19:18' };
-        document.getElementById('h-hijri').textContent = 'Offline';
-        showToast('⚠ Using offline prayer times');
+    const nowSecs = () => { const c = cairoNow(); return c.h * 3600 + c.m * 60 + c.s };
+    const nowMins = () => { const c = cairoNow(); return c.h * 60 + c.m };
+    function dateStr(off = 0) { const d = new Date(Date.now() + off * 864e5); const p = new Intl.DateTimeFormat('en-US', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(d); const g = t => p.find(x => x.type === t)?.value || '00'; return `${g('year')}-${g('month')}-${g('day')}` }
+    function getEffectiveDate() { const cm = nowMins(); const fM = PRAYERS ? toMins(PRAYERS.Fajr) : 280; if (cm < fM) return dateStr(-1); return dateStr(0) }
+    function fmt12(t) { if (!t) return '—'; const c = t.split(' ')[0]; const [h, m] = c.split(':').map(Number); return `${h % 12 || 12}:${String(m).padStart(2, '0')} <small>${h < 12 ? 'AM' : 'PM'}</small>` }
+    function fmt12plain(t) { if (!t) return '—'; const c = t.split(' ')[0]; const [h, m] = c.split(':').map(Number); return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}` }
+    function fmtSecs(ts) { if (ts <= 0) return '0s'; const h = Math.floor(ts / 3600), m = Math.floor((ts % 3600) / 60), s = ts % 60; if (h > 0) return `${h}h ${m}m ${s}s`; if (m > 0) return `${m}m ${s}s`; return `${s}s` }
+    function ordinal(n) { const s = ['th', 'st', 'nd', 'rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]) }
+    function friendlyDate(d = new Date()) { return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) }
+    function getDaysInMonth(d = new Date()) { return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate() }
+    function shortDay(ds) { return new Date(ds + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' }) }
+    function shortDate(ds) { return new Date(ds + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) }
+    /* ═══ SEED ═══ */
+    function seedData() {
+      if (localStorage.getItem('ros-seeded-v4')) return;
+      const bodyIds = ['cold', 'sun', 'hair', 'workout', 'siwak', 'walk1', 'walk2'];
+      const rStart = new Date('2026-02-19'); const todayD = new Date(dateStr() + 'T12:00:00');
+      for (let d = 0; d < 30; d++) {
+        const dt = new Date(rStart); dt.setDate(dt.getDate() + d); if (dt > todayD) break;
+        const ds = dt.toISOString().slice(0, 10); if (localStorage.getItem(`ros-${ds}`)) continue;
+        let hPct, wCups, pTaken, gS, uS; const rd = d + 1;
+        if (rd <= 7) { hPct = .15 + Math.random() * .15; wCups = Math.floor(1 + Math.random() * 3); pTaken = Math.random() < .7 ? 3 : 4; gS = Math.floor(2 + Math.random() * 2); uS = Math.random() < .4 ? 1 : 0 }
+        else if (rd <= 14) { hPct = .2 + Math.random() * .15; wCups = Math.floor(2 + Math.random() * 3); pTaken = Math.random() < .8 ? 4 : 3; gS = Math.floor(2 + Math.random() * 2); uS = Math.random() < .5 ? 1 : 0 }
+        else if (rd <= 18) { hPct = .35 + Math.random() * .2; wCups = Math.floor(3 + Math.random() * 3); pTaken = Math.random() < .85 ? 4 : 3; gS = Math.floor(1 + Math.random() * 2); uS = Math.random() < .5 ? 1 : 0 }
+        else { hPct = .3 + Math.random() * .3; wCups = Math.floor(3 + Math.random() * 4); pTaken = Math.random() < .9 ? 4 : 3; gS = Math.floor(1 + Math.random() * 3); uS = Math.random() < .4 ? 1 : 0 }
+        const body = {};[...bodyIds].sort(() => Math.random() - .5).slice(0, Math.round(hPct * 7)).forEach(id => body[id] = true);
+        const cups = Array(8).fill(false); for (let c = 0; c < Math.min(wCups, 8); c++)cups[c] = true;
+        const pills = [{ id: 'pill-1', name: 'Pill 1', type: 'pill', anchor: 'maghrib', taken: true }, { id: 'pill-23', name: 'Pill 2+3', type: 'pill', anchor: 'maghrib+30', taken: true }, { id: 'pill-night', name: '2 Packets', type: 'packet', anchor: '23:30', taken: Math.random() < .85 }, { id: 'pill-suhoor', name: 'Last 2 Pills', type: 'pill', anchor: 'fajr-45', taken: pTaken >= 4 }];
+        const gLog = []; for (let s = 0; s < gS; s++) { const hr = 12 + Math.floor(Math.random() * 5); gLog.push({ time: `${hr % 12 || 12}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')} PM` }) }
+        const uLog = []; for (let s = 0; s < uS; s++) { uLog.push({ time: `${3 + Math.floor(Math.random() * 3)}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')} PM` }) }
+        localStorage.setItem(`ros-${ds}`, JSON.stringify({ date: ds, body, cups, meds: pills, growth: { sessions: gS, log: gLog }, upwork: { sessions: uS, log: uLog } }));
+        localStorage.setItem(`ros-weight-${ds}`, JSON.stringify(Math.round((112.5 - d * 0.065 + (Math.random() - .4) * .4) * 10) / 10))
       }
+      localStorage.setItem('ros-seeded-v4', '1')
     }
-
-    function derived() {
-      if (!PRAYERS) return null;
-      return {
-        waterOpen: addMins(PRAYERS.Maghrib, 120),
-        pill1: PRAYERS.Maghrib,
-        pill23: addMins(PRAYERS.Maghrib, 30),
-        pillNight: '23:30',
-        pillSuhoor: addMins(PRAYERS.Fajr, -45),
-      };
+    /* ═══ MEDICINE DEFAULTS ═══ */
+    const DEFAULT_MEDS = [{ id: 'pill-1', name: 'Pill 1', type: 'pill', dose: '', anchor: 'maghrib', taken: false }, { id: 'pill-23', name: 'Pill 2+3', type: 'pill', dose: '', anchor: 'maghrib+30', taken: false }, { id: 'pill-night', name: '2 Packets', type: 'packet', dose: '', anchor: '23:30', taken: false }, { id: 'pill-suhoor', name: 'Last 2 Pills', type: 'pill', dose: '', anchor: 'fajr-45', taken: false }];
+    /* ═══ STATE ═══ */
+    let TODAY, SK; let PRAYERS = null, TOMORROW_FAJR = null, HIJRI_DATA = null;
+    function refreshToday() { TODAY = getEffectiveDate(); SK = `ros-${TODAY}` }
+    function initState() { return { date: TODAY, body: {}, cups: Array(CFG.waterCups).fill(false), meds: JSON.parse(JSON.stringify(DEFAULT_MEDS)), growth: { sessions: 0, log: [] }, upwork: { sessions: 0, log: [] } } }
+    function loadState() { try { const s = JSON.parse(localStorage.getItem(SK)); if (!s) return initState(); if (!s.meds && s.pills) { s.meds = DEFAULT_MEDS.map((m, i) => ({ ...m, taken: !!s.pills[i] })); delete s.pills } if (!s.meds) s.meds = JSON.parse(JSON.stringify(DEFAULT_MEDS)); if (!s.growth) s.growth = { sessions: 0, log: [] }; if (!s.upwork) s.upwork = { sessions: 0, log: [] }; return s } catch { return initState() } }
+    function saveState() { localStorage.setItem(SK, JSON.stringify(ST)); renderScoreStrip() }
+    let ST;
+    function loadDayState(dk) { try { const s = JSON.parse(localStorage.getItem(`ros-${dk}`)); if (s && !s.meds && s.pills) { s.meds = DEFAULT_MEDS.map((m, i) => ({ ...m, taken: !!s.pills[i] })); delete s.pills } return s || null } catch { return null } }
+    /* ═══ SCORES ═══ */
+    function calcScores(s) {
+      if (!s) return { health: 0, water: 0, medicine: 0, work: 0, overall: 0 };
+      const bi = ['cold', 'sun', 'hair', 'workout', 'siwak', 'walk1', 'walk2'];
+      const bd = bi.filter(id => s.body && s.body[id]).length;
+      const health = Math.round((bd / 7) * 100);
+      const water = Math.round(((s.cups || []).filter(Boolean).length / 8) * 100);
+      const meds = s.meds || []; const medTotal = meds.length || 1; const medDone = meds.filter(m => m.taken).length;
+      const medicine = Math.round((medDone / medTotal) * 100);
+      const gs = s.growth ? s.growth.sessions : 0, us = s.upwork ? s.upwork.sessions : 0;
+      const work = Math.min(100, Math.round(((gs + us) / 3) * 100));
+      const overall = Math.round(health * .3 + water * .2 + medicine * .2 + work * .3);
+      return { health, water, medicine, work, overall }
     }
-    function cupTimes() {
-      const d = derived(); if (!d) return [];
-      return Array.from({ length: CFG.waterCups }, (_, i) => addMins(d.waterOpen, i * CFG.waterInterval));
+    function getWeekAvgScores() { let t = { health: 0, water: 0, medicine: 0, work: 0 }, c = 0; for (let i = 1; i <= 7; i++) { const d = dateStr(-i); const s = loadDayState(d); if (s) { const sc = calcScores(s); t.health += sc.health; t.water += sc.water; t.medicine += sc.medicine; t.work += sc.work; c++ } } if (c === 0) return { health: 0, water: 0, medicine: 0, work: 0 }; return { health: Math.round(t.health / c), water: Math.round(t.water / c), medicine: Math.round(t.medicine / c), work: Math.round(t.work / c) } }
+    /* ═══ SCORE STRIP ═══ */
+    function renderScoreStrip() {
+      const sc = calcScores(ST); const wa = getWeekAvgScores();
+      const items = [{ label: 'Work', pct: sc.work, avg: wa.work, color: '#F59E0B' }, { label: 'Health', pct: sc.health, avg: wa.health, color: '#10B981' }, { label: 'Water', pct: sc.water, avg: wa.water, color: '#3B82F6' }, { label: 'Medicine', pct: sc.medicine, avg: wa.medicine, color: '#8B5CF6' }];
+      const C = 2 * Math.PI * 26;
+      document.getElementById('score-strip').innerHTML = items.map(it => { const dash = (it.pct / 100) * C; const diff = it.pct - it.avg; const dc = diff > 0 ? 'color:var(--green)' : diff < 0 ? 'color:var(--red)' : 'color:var(--muted)'; const ds = diff > 0 ? `↑ ${diff}%` : diff < 0 ? `↓ ${Math.abs(diff)}%` : '—'; return `<div class="score-ring-card"><svg class="sr-svg" viewBox="0 0 60 60"><circle cx="30" cy="30" r="26" fill="none" stroke="#1F2937" stroke-width="5"/><circle cx="30" cy="30" r="26" fill="none" stroke="${it.color}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${dash.toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 30 30)"/></svg><div class="sr-pct" style="color:${it.color}">${it.pct}%</div><div class="sr-label">${it.label}</div><div class="sr-compare">vs week avg <span style="${dc}">${ds}</span></div></div>` }).join('')
     }
-
-    /* ══════════════════════════════════════════════════════════
-       PRAYER PANEL + COUNTDOWN
-       ══════════════════════════════════════════════════════════ */
-    const PRAYER_DEF = [
-      { key: 'Fajr', icon: '🌙', label: 'Fajr' },
-      { key: 'Dhuhr', icon: '☀️', label: 'Dhuhr' },
-      { key: 'Asr', icon: '🌤', label: 'Asr' },
-      { key: 'Maghrib', icon: '🌅', label: 'Maghrib', note: '· Iftar' },
-      { key: 'Isha', icon: '🌙', label: 'Isha' },
-    ];
-
+    /* ═══ WEIGHT ═══ */
+    function getWeight(dk) { try { return JSON.parse(localStorage.getItem(`ros-weight-${dk}`)) } catch { return null } }
+    function saveWeight() { const v = parseFloat(document.getElementById('wc-input').value); if (isNaN(v) || v < 40 || v > 250) { showToast('Enter a valid weight'); return } localStorage.setItem(`ros-weight-${TODAY}`, JSON.stringify(v)); document.getElementById('wc-input').value = ''; renderWeight(); renderScoreStrip(); showToast(`⚖️ ${v} kg saved`) }
+    function renderWeight() {
+      const tw = getWeight(TODAY), yw = getWeight(dateStr(-1));
+      document.getElementById('wc-today').innerHTML = tw ? `${tw}<small> kg</small>` : '—<small> kg</small>';
+      const dEl = document.getElementById('wc-delta');
+      if (tw && yw) { const diff = tw - yw; dEl.className = `wc-delta ${diff < 0 ? 'loss' : diff > 0 ? 'gain' : 'flat'}`; dEl.textContent = `${diff > 0 ? '+' : ''}${diff.toFixed(1)} kg vs yesterday` } else dEl.textContent = '';
+      const cw = tw || yw || 112; const nm = Math.floor(cw / CFG.weightMilestoneStep) * CFG.weightMilestoneStep;
+      document.getElementById('wc-milestone').innerHTML = `<div class="wc-mile-next">🎯 Next milestone: ${nm} kg · ${(cw - nm).toFixed(1)} kg to go</div><div class="wc-mile-end">End goal: ${CFG.weightGoal} kg · ${(cw - CFG.weightGoal).toFixed(1)} kg total journey</div>`;
+      // 7-day table
+      const tbl = document.getElementById('wc-week-table'); let rows = '';
+      for (let i = 6; i >= 0; i--) { const d = dateStr(-i); const w = getWeight(d); const isT = d === TODAY; rows += `<tr><td class="w7-day">${shortDay(d)} ${new Date(d + 'T12:00:00').getDate()}</td><td class="${w ? (isT ? 'w7-val w7-today' : 'w7-val') : 'w7-empty'}">${w ? w + ' kg' : '—'}</td></tr>` }
+      tbl.innerHTML = `<table class="w7-table">${rows}</table>`
+    }
+    /* ═══ PRAYER API ═══ */
+    async function fetchTimings(date = dateStr()) { const [y, m, d] = date.split('-'); const r = await fetch(`https://api.aladhan.com/v1/timings/${d}-${m}-${y}?latitude=${CFG.lat}&longitude=${CFG.lon}&method=${CFG.method}`); if (!r.ok) throw new Error('API'); return (await r.json()).data }
+    async function loadPrayers() { try { const data = await fetchTimings(); PRAYERS = data.timings; HIJRI_DATA = data.date.hijri; document.getElementById('h-hijri').textContent = `${ordinal(parseInt(HIJRI_DATA.day, 10))} ${HIJRI_DATA.month.en} ${HIJRI_DATA.year}`; document.getElementById('h-hijri-year').textContent = ''; renderProgress() } catch { PRAYERS = { Fajr: '04:42', Dhuhr: '12:04', Asr: '15:27', Maghrib: '18:00', Isha: '19:18' }; document.getElementById('h-hijri').textContent = 'Offline'; showToast('⚠ Using offline prayer times') } }
+    function derived() { if (!PRAYERS) return null; return { waterOpen: addMins(PRAYERS.Maghrib, 120), pill1: PRAYERS.Maghrib, pill23: addMins(PRAYERS.Maghrib, 30), pillNight: '23:30', pillSuhoor: addMins(PRAYERS.Fajr, -45) } }
+    function cupTimes() { const d = derived(); if (!d) return []; return Array.from({ length: CFG.waterCups }, (_, i) => addMins(d.waterOpen, i * CFG.waterInterval)) }
+    function getMedTime(anchor) { const d = derived(); if (!d) return null; if (anchor === 'maghrib') return d.pill1; if (anchor === 'maghrib+30') return d.pill23; if (anchor === 'fajr-45') return d.pillSuhoor; return anchor }
+    /* ═══ PRAYERS ═══ */
+    const PRAYER_DEF = [{ key: 'Fajr', icon: '🌙', label: 'Fajr' }, { key: 'Dhuhr', icon: '☀️', label: 'Dhuhr' }, { key: 'Asr', icon: '🌤', label: 'Asr' }, { key: 'Maghrib', icon: '🌅', label: 'Maghrib', note: '· Iftar' }, { key: 'Isha', icon: '🌙', label: 'Isha' }];
     function renderPrayers() {
-      if (!PRAYERS) return;
-      const nowM = nowMins();
-      const nowS = nowSecs();
-
-      let nextIdx = -1;
-      for (let i = 0; i < PRAYER_DEF.length; i++) {
-        const pm = toMins(PRAYERS[PRAYER_DEF[i].key]);
-        let diff = pm - nowM;
-        if (i === 0 && diff < -18 * 60) diff += 1440;
-        if (diff > 0) { nextIdx = i; break; }
-      }
-
-      // Compute countdown for next prayer (or tomorrow Fajr)
-      let isTomorrow = false, cdownStr = '';
-      if (nextIdx >= 0) {
-        const pSecs = toMins(PRAYERS[PRAYER_DEF[nextIdx].key]) * 60;
-        let diff = pSecs - nowS; if (diff < 0) diff += 86400;
-        cdownStr = fmtSecs(diff);
-      } else {
-        loadTomorrowFajr();
-        const fT = TOMORROW_FAJR || PRAYERS.Fajr;
-        const fSecs = (toMins(fT) + 1440) * 60;
-        let diff = fSecs - nowS; if (diff >= 86400) diff -= 86400;
-        cdownStr = fmtSecs(diff);
-        nextIdx = 0; isTomorrow = true; // point to Fajr row
-      }
-
-      document.getElementById('prayer-list').innerHTML = PRAYER_DEF.map((p, i) => {
-        const t = PRAYERS[p.key], pm = toMins(t);
-        let diff = pm - nowM;
-        if (i === 0 && !isTomorrow && diff < -18 * 60) diff += 1440;
-        let cls = 'upcoming', badge = '', tCls = '', nameCls = 'pr-name';
-        if (i === nextIdx) {
-          cls = 'active'; tCls = 't-next'; nameCls = 'pr-name pr-name-next';
-          badge = `<span class="pr-cdown">⏱ ${cdownStr}</span>`;
-        } else if (diff <= 0 || (isTomorrow && i !== nextIdx)) {
-          cls = 'done';
-          badge = `<span class="pr-badge b-done">✓ Prayed</span>`;
-          tCls = 't-done';
-        }
-        const note = p.note ? `<span style="font-size:10px;color:var(--muted);font-weight:400;"> ${p.note}</span>` : '';
-        const tmrwTag = (isTomorrow && i === 0) ? ` <span style="font-size:9px;color:var(--muted);">· tmrw</span>` : '';
-        return `<div class="pr-row ${cls}">
-      <div class="pr-icon">${p.icon}</div>
-      <div class="${nameCls}">${p.label}${note}${tmrwTag}</div>
-      <div class="pr-time ${tCls}">${fmt12(t)}</div>
-      ${badge}
-    </div>`;
-      }).join('');
-
-      // Hide old bottom bar — timer is now inline
-      document.getElementById('next-bar').style.display = 'none';
+      if (!PRAYERS) return; const nM = nowMins(), nS = nowSecs(); let nI = -1; for (let i = 0; i < PRAYER_DEF.length; i++) { let d = toMins(PRAYERS[PRAYER_DEF[i].key]) - nM; if (i === 0 && d < -18 * 60) d += 1440; if (d > 0) { nI = i; break } } let isT = false, cs = ''; if (nI >= 0) { let d = toMins(PRAYERS[PRAYER_DEF[nI].key]) * 60 - nS; if (d < 0) d += 86400; cs = fmtSecs(d) } else { loadTomorrowFajr(); const fT = TOMORROW_FAJR || PRAYERS.Fajr; let d = (toMins(fT) + 1440) * 60 - nS; if (d >= 86400) d -= 86400; cs = fmtSecs(d); nI = 0; isT = true }
+      document.getElementById('prayer-list').innerHTML = PRAYER_DEF.map((p, i) => { const t = PRAYERS[p.key], pm = toMins(t); let d = pm - nM; if (i === 0 && !isT && d < -18 * 60) d += 1440; let cls = 'upcoming', badge = '', tC = '', nC = 'pr-name'; if (i === nI) { cls = 'active'; tC = 't-next'; nC = 'pr-name pr-name-next'; badge = `<span class="pr-cdown">⏱ ${cs}</span>` } else if (d <= 0 || (isT && i !== nI)) { cls = 'done'; badge = '<span class="pr-badge b-done">✓ Prayed</span>'; tC = 't-done' } const note = p.note ? `<span style="font-size:10px;color:var(--muted);font-weight:400"> ${p.note}</span>` : ''; const tmrw = (isT && i === 0) ? ' <span style="font-size:9px;color:var(--muted)">· tmrw</span>' : ''; return `<div class="pr-row ${cls}"><div class="pr-icon">${p.icon}</div><div class="${nC}">${p.label}${note}${tmrw}</div><div class="pr-time ${tC}">${fmt12(t)}</div>${badge}</div>` }).join(''); document.getElementById('next-bar').style.display = 'none'
     }
-
-    async function loadTomorrowFajr() {
-      if (TOMORROW_FAJR) return;
-      try {
-        const data = await fetchTimings(dateStr(1)); // Cairo-aware tomorrow
-        TOMORROW_FAJR = data.timings.Fajr;
-        // Show the Fajr strip in the progress card
-        const strip = document.getElementById('fajr-strip');
-        if (strip) { strip.style.display = 'flex'; }
-        const ftEl = document.getElementById('fajr-time');
-        if (ftEl) { ftEl.innerHTML = fmt12(TOMORROW_FAJR); }
-        // Suhoor pill = Fajr - 45 min
-        const pillEl = document.getElementById('fajr-pill-time');
-        if (pillEl) { pillEl.innerHTML = fmt12(addMins(TOMORROW_FAJR, -45)); }
-      } catch (e) { }
-    }
-
-    /* ══════════════════════════════════════════════════════════
-       DUAL PROGRESS RINGS
-       ══════════════════════════════════════════════════════════ */
-    function renderProgress() {
-      const today = new Date(); today.setHours(0, 0, 0, 0);
-      const start = new Date(CFG.ramadanStart); start.setHours(0, 0, 0, 0);
-      const ramDay = Math.min(Math.max(Math.floor((today - start) / 864e5) + 1, 1), CFG.totalDays);
-      const daysLeft = CFG.totalDays - ramDay;
-      const C = 2 * Math.PI * 44; // r=44
-
-      // Ramadan ring
-      const ramPct = ramDay / CFG.totalDays;
-      document.getElementById('ram-arc').setAttribute('stroke-dasharray', `${(ramPct * C).toFixed(1)} ${C.toFixed(1)}`);
-      document.getElementById('ram-day').textContent = ramDay;
-      document.getElementById('ram-of').textContent = 'of 30';
-      const hijriYear = HIJRI_DATA ? HIJRI_DATA.year : '1447';
-      const hijriMonth = HIJRI_DATA ? HIJRI_DATA.month.en : 'Ramadan';
-      document.getElementById('ram-label').textContent = hijriMonth;
-      document.getElementById('ram-sub').textContent = daysLeft > 0 ? `${daysLeft} day${daysLeft !== 1 ? 's' : ''} left` : 'Last day 🌙';
-      document.getElementById('prog-eid').textContent = daysLeft > 0 ? `🎉 Eid in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}` : ' Eid Mubarak! 🌙';
-
-      // Month ring
-      const monDay = today.getDate();
-      const monTotal = getDaysInMonth(today);
-      const monLeft = monTotal - monDay;
-      const monPct = monDay / monTotal;
-      const monName = today.toLocaleDateString('en-US', { month: 'long' });
-      document.getElementById('mon-arc').setAttribute('stroke-dasharray', `${(monPct * C).toFixed(1)} ${C.toFixed(1)}`);
-      document.getElementById('mon-day').textContent = monDay;
-      document.getElementById('mon-of').textContent = `of ${monTotal}`;
-      document.getElementById('mon-label').textContent = monName;
-      document.getElementById('mon-sub').textContent = `${monLeft} day${monLeft !== 1 ? 's' : ''} left`;
-    }
-
-    /* ══════════════════════════════════════════════════════════
-       BODY ITEMS
-       ══════════════════════════════════════════════════════════ */
-    const BODY_ITEMS = [
-      { id: 'cold', icon: '🚿', label: 'Cold shower' },
-      { id: 'sun', icon: '☀️', label: 'Sun · 20 min' },
-      { id: 'hair', icon: '💆', label: 'Hair wash' },
-      { id: 'workout', icon: '💪', label: 'Workout · 10 min' },
-      { id: 'siwak', icon: '🪥', label: 'Siwak (after Asr)' },
-      { id: 'walk1', icon: '🚶', label: 'Walk 1 · 10 min' },
-      { id: 'walk2', icon: '🚶', label: 'Walk 2 · 10 min' },
-    ];
-
-    function renderBody() {
-      document.getElementById('body-grid').innerHTML = BODY_ITEMS.map(item => {
-        const done = !!ST.body[item.id];
-        return `<div class="body-item ${done ? 'checked' : ''}" onclick="toggleBody('${item.id}')">
-      <div class="bi-icon">${item.icon}</div>
-      <div class="bi-label">${item.label}</div>
-      <div class="bi-dot">${done ? '✓' : ''}</div>
-    </div>`;
-      }).join('');
-    }
-
-    function toggleBody(id) {
-      ST.body[id] = !ST.body[id];
-      if (!ST.healthStreakBumped) { bumpStreak(HEALTH_STREAK, HEALTH_SK); ST.healthStreakBumped = true; }
-      saveState(); renderBody();
-      renderHealthJourney();
-      showToast(ST.body[id] ? '✓ Done' : 'Unmarked');
-    }
-
-    /* ══════════════════════════════════════════════════════════
-       WATER CUPS
-       ══════════════════════════════════════════════════════════ */
-    function renderCups() {
-      const times = cupTimes();
-      document.getElementById('cups-row').innerHTML = Array.from({ length: CFG.waterCups }, (_, i) => {
-        const filled = ST.cups[i];
-        const tLabel = times[i] ? fmt12plain(times[i]) : '';
-        return `<div class="cup ${filled ? 'filled' : ''}" onclick="toggleCup(${i})" title="Cup ${i + 1}${tLabel ? ' · ' + tLabel : ''}">
-      ${filled ? '💧' : `<span>${i + 1}</span>`}
-    </div>`;
-      }).join('');
-      const drank = ST.cups.filter(Boolean).length;
-      const nextIdx = ST.cups.findIndex(c => !c);
-      const hint = document.getElementById('cup-hint');
-      if (nextIdx === -1) { hint.textContent = 'All 8 cups done · 4.0L ✓'; hint.style.color = '#6ee7b7'; }
-      else if (times[nextIdx]) {
-        hint.innerHTML = `${drank} of 8 · ${(drank * 0.5).toFixed(1)}L &nbsp;·&nbsp; Next: Cup ${nextIdx + 1} at <strong>${fmt12plain(times[nextIdx])}</strong>`;
-        hint.style.color = '';
-      } else {
-        hint.textContent = `${drank} of 8 cups tracked`; hint.style.color = '';
-      }
-    }
-
-    function toggleCup(i) {
-      ST.cups[i] = !ST.cups[i];
-      if (!ST.healthStreakBumped) { bumpStreak(HEALTH_STREAK, HEALTH_SK); ST.healthStreakBumped = true; }
-      saveState(); renderCups();
-      showToast(ST.cups[i] ? `💧 ${(ST.cups.filter(Boolean).length * 0.5).toFixed(1)}L done` : 'Cup unchecked');
-    }
-
-    /* ══════════════════════════════════════════════════════════
-       PILLS (4 daily events)
-       ══════════════════════════════════════════════════════════ */
-    const PILL_DEF = [
-      { icon: '🌅', label: 'Pill 1', anchor: 'Maghrib · before eating' },
-      { icon: '🍽', label: 'Pill 2 + 3', anchor: 'Maghrib+30 · after Iftar' },
-      { icon: '🌙', label: '2 Packets', anchor: '11:30 PM · fixed' },
-      { icon: '⭐', label: 'Last 2 Pills', anchor: 'Fajr−45 · after Suhoor' },
-    ];
-
+    async function loadTomorrowFajr() { if (TOMORROW_FAJR) return; try { const data = await fetchTimings(dateStr(1)); TOMORROW_FAJR = data.timings.Fajr; const s = document.getElementById('fajr-strip'); if (s) s.style.display = 'flex'; const f = document.getElementById('fajr-time'); if (f) f.innerHTML = fmt12(TOMORROW_FAJR) } catch { } }
+    /* ═══ PROGRESS RINGS ═══ */
+    function renderProgress() { const today = new Date(); today.setHours(0, 0, 0, 0); const start = new Date(CFG.ramadanStart); start.setHours(0, 0, 0, 0); const ramDay = Math.min(Math.max(Math.floor((today - start) / 864e5) + 1, 1), CFG.totalDays); const daysLeft = CFG.totalDays - ramDay; const C = 2 * Math.PI * 44; const hY = HIJRI_DATA ? HIJRI_DATA.year : '1447', hM = HIJRI_DATA ? HIJRI_DATA.month.en : 'Ramadan', hD = HIJRI_DATA ? parseInt(HIJRI_DATA.day, 10) : ramDay, hMD = 30; document.getElementById('ram-arc').setAttribute('stroke-dasharray', `${(hD / hMD * C).toFixed(1)} ${C.toFixed(1)}`); document.getElementById('ram-day').textContent = hD; document.getElementById('ram-of').textContent = `of ${hMD}`; document.getElementById('ram-label').textContent = hM; document.getElementById('ram-sub').textContent = (hMD - hD) > 0 ? `${hMD - hD} day${(hMD - hD) !== 1 ? 's' : ''} left` : 'Last day 🌙'; const isRam = HIJRI_DATA ? parseInt(HIJRI_DATA.month.number) === 9 : true; const eidEl = document.getElementById('prog-eid'); if (isRam) { eidEl.textContent = daysLeft > 0 ? `🎉 Eid in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}` : 'Eid Mubarak! 🌙'; eidEl.style.display = '' } else eidEl.style.display = 'none'; const mD = today.getDate(), mT = getDaysInMonth(today), mL = mT - mD, mN = today.toLocaleDateString('en-US', { month: 'long' }); document.getElementById('mon-arc').setAttribute('stroke-dasharray', `${(mD / mT * C).toFixed(1)} ${C.toFixed(1)}`); document.getElementById('mon-day').textContent = mD; document.getElementById('mon-of').textContent = `of ${mT}`; document.getElementById('mon-label').textContent = mN; document.getElementById('mon-sub').textContent = `${mL} day${mL !== 1 ? 's' : ''} left` }
+    /* ═══ BODY ═══ */
+    const BODY_ITEMS = [{ id: 'cold', icon: '🚿', label: 'Cold shower' }, { id: 'sun', icon: '☀️', label: 'Sun · 20 min' }, { id: 'hair', icon: '💆', label: 'Hair wash' }, { id: 'workout', icon: '💪', label: 'Workout · 10 min' }, { id: 'siwak', icon: '🪥', label: 'Siwak (after Asr)' }, { id: 'walk1', icon: '🚶', label: 'Walk 1 · 10 min' }, { id: 'walk2', icon: '🚶', label: 'Walk 2 · 10 min' }];
+    function renderBody() { document.getElementById('body-grid').innerHTML = BODY_ITEMS.map(it => { const d = !!ST.body[it.id]; return `<div class="body-item ${d ? 'checked' : ''}" onclick="toggleBody('${it.id}')"><div class="bi-icon">${it.icon}</div><div class="bi-label">${it.label}</div><div class="bi-dot">${d ? '✓' : ''}</div></div>` }).join('') }
+    function toggleBody(id) { ST.body[id] = !ST.body[id]; saveState(); renderBody(); showToast(ST.body[id] ? '✓ Done' : 'Unmarked') }
+    /* ═══ CUPS ═══ */
+    function renderCups() { const times = cupTimes(); document.getElementById('cups-row').innerHTML = Array.from({ length: CFG.waterCups }, (_, i) => { const f = ST.cups[i]; const tL = times[i] ? fmt12plain(times[i]) : ''; return `<div class="cup ${f ? 'filled' : ''}" onclick="toggleCup(${i})" title="Cup ${i + 1}${tL ? ' · ' + tL : ''}">${f ? '💧' : `<span>${i + 1}</span>`}</div>` }).join(''); const dr = ST.cups.filter(Boolean).length; const nI = ST.cups.findIndex(c => !c); const h = document.getElementById('cup-hint'); if (nI === -1) { h.textContent = 'All 8 cups done · 4.0L ✓'; h.style.color = '#6ee7b7' } else if (cupTimes()[nI]) { h.innerHTML = `${dr} of 8 · ${(dr * .5).toFixed(1)}L &nbsp;·&nbsp; Next: Cup ${nI + 1} at <strong>${fmt12plain(cupTimes()[nI])}</strong>`; h.style.color = '' } else { h.textContent = `${dr} of 8 cups tracked`; h.style.color = '' } }
+    function toggleCup(i) { ST.cups[i] = !ST.cups[i]; saveState(); renderCups(); showToast(ST.cups[i] ? `💧 ${(ST.cups.filter(Boolean).length * .5).toFixed(1)}L done` : 'Cup unchecked') }
+    /* ═══ MEDICINE (dynamic) ═══ */
     function renderPills() {
-      const d = derived();
-      const times = d ? [d.pill1, d.pill23, d.pillNight, d.pillSuhoor] : [null, null, null, null];
-      document.getElementById('pills-row').innerHTML = PILL_DEF.map((p, i) => {
-        const taken = ST.pills[i];
-        const t = times[i] ? `<strong>${fmt12(times[i])}</strong>` : '<span style="color:var(--muted)">Loading…</span>';
-        return `<div class="pill-card ${taken ? 'taken' : ''}" onclick="togglePill(${i})">
-      <div class="p-icon">${p.icon}</div>
-      <div class="p-time">${t}</div>
-      <div class="p-anchor">${p.anchor}</div>
-      <div class="p-badge ${taken ? 'taken-b' : 'untaken'}">${taken ? '✓ Taken' : 'Tap when taken'}</div>
-    </div>`;
-      }).join('');
+      const el = document.getElementById('pills-row');
+      el.innerHTML = ST.meds.map((m, i) => {
+        const t = getMedTime(m.anchor); const tStr = t ? fmt12(t) : '—';
+        return `<div class="pill-item ${m.taken ? 'taken' : ''}" onclick="toggleMed(${i})"><div class="pi-icon">${m.type === 'packet' ? '📦' : m.type === 'injection' ? '💉' : '💊'}</div><div class="pi-info"><div class="pi-name">${m.name}${m.dose ? ' · ' + m.dose : ''}</div><div class="pi-meta">${tStr} · ${m.anchor}</div></div><div class="pi-badge ${m.taken ? 'taken-b' : 'untaken'}">${m.taken ? '✓ Taken' : 'Tap'}</div><div class="pi-del" onclick="event.stopPropagation();removeMed(${i})" title="Remove">✕</div></div>`
+      }).join('')
     }
-
-    function togglePill(i) {
-      ST.pills[i] = !ST.pills[i];
-      if (!ST.healthStreakBumped) { bumpStreak(HEALTH_STREAK, HEALTH_SK); ST.healthStreakBumped = true; }
-      saveState(); renderPills();
-      showToast(ST.pills[i] ? '💊 Pill marked taken' : 'Unmarked');
+    function toggleMed(i) { ST.meds[i].taken = !ST.meds[i].taken; saveState(); renderPills(); showToast(ST.meds[i].taken ? '💊 Taken' : 'Unmarked') }
+    function removeMed(i) { if (!confirm(`Remove "${ST.meds[i].name}"?`)) return; ST.meds.splice(i, 1); saveState(); renderPills(); showToast('Medicine removed') }
+    function openAddMed() {
+      document.getElementById('med-modal-root').innerHTML = `<div class="med-modal-overlay" onclick="if(event.target===this)closeAddMed()"><div class="med-modal"><h3>Add Medicine</h3><label>Name</label><input id="mm-name" placeholder="e.g. Vitamin D"><label>Type</label><select id="mm-type"><option value="pill">💊 Pill</option><option value="packet">📦 Packet</option><option value="scoop">🥄 Scoop</option><option value="injection">💉 Injection</option></select><label>Dose (optional)</label><input id="mm-dose" placeholder="e.g. 500mg"><label>Anchor Time</label><select id="mm-anchor"><option value="maghrib">At Maghrib</option><option value="maghrib+30">Maghrib + 30min</option><option value="fajr-45">Fajr - 45min</option><option value="23:30">11:30 PM (fixed)</option><option value="12:00">12:00 PM (fixed)</option><option value="15:00">3:00 PM (fixed)</option></select><div class="med-modal-btns"><button class="mm-cancel" onclick="closeAddMed()">Cancel</button><button class="mm-save" onclick="saveMed()">Add</button></div></div></div>`
     }
-
-    /* ══════════════════════════════════════════════════════════
-       HEALTH JOURNEY  (30 individual Ramadan day slots)
-       ══════════════════════════════════════════════════════════ */
-    function renderHealthJourney() {
-      const wrap = document.getElementById('health-streak-wrap');
-      if (!wrap) return;
-      if (!ST.healthDays) ST.healthDays = Array(30).fill(false);
-
-      const dotsHTML = Array.from({ length: 30 }, (_, i) => {
-        const dayNum = i + 1;
-        const active = !!ST.healthDays[i];
-        // colour wheel: violet(260) → blue → green → yellow → red(0)
-        const hue = Math.round(260 - (i / 29) * 260);
-        const bg = active ? `hsl(${hue},72%,52%)` : `hsla(${hue},72%,52%,.18)`;
-        const bdr = active ? `hsl(${hue},72%,52%)` : `hsla(${hue},72%,52%,.35)`;
-        return `<div class="hj-dot" style="background:${bg};border:2px solid ${bdr};"
-      onclick="toggleHealthDay(${i})" title="Day ${dayNum}">${dayNum}</div>`;
-      }).join('');
-
-      const done = ST.healthDays.filter(Boolean).length;
-      const statsText = done === 0
-        ? 'Tap a day to mark it · start your streak 🔥'
-        : done === 30 ? '🏆 Perfect Ramadan! King! 👑'
-          : `${done} of 30 days · ${30 - done} to go`;
-
-      wrap.innerHTML = `<div class="hj-wrap">
-    <div class="hj-header"><span style="font-size:15px;">📊</span><span class="hj-title">Streak Journey · Health</span></div>
-    <div class="hj-tagline">Tap each day to mark it · Show up every day</div>
-    <div class="hj-grid">${dotsHTML}</div>
-    <div class="hj-stats${done === 0 ? ' zero' : ''}">${statsText}</div>
-  </div>`;
-    }
-
-    function toggleHealthDay(i) {
-      if (!ST.healthDays) ST.healthDays = Array(30).fill(false);
-      ST.healthDays[i] = !ST.healthDays[i];
-      saveState(); renderHealthJourney();
-      showToast(ST.healthDays[i] ? `✓ Day ${i + 1} marked` : `Day ${i + 1} unmarked`);
-    }
-
-    /* ══════════════════════════════════════════════════════════
-       STREAK JOURNEY  (kept for reference / future use)
-       ══════════════════════════════════════════════════════════ */
-    const SJ_MILESTONES = [
-      { days: 1, label: 'Day 1', icon: '🗓' },
-      { days: 3, label: 'Starter', icon: '🌱' },
-      { days: 7, label: 'Week', icon: '📅' },
-      { days: 10, label: 'Builder', icon: '🔨' },
-      { days: 21, label: 'Habit', icon: '⚡' },
-      { days: 30, label: 'King', icon: '👑' },
-    ];
-
-    function renderStreakJourney(containerId, streakObj, name) {
-      const wrap = document.getElementById(containerId);
-      if (!wrap) return;
-      const s = streakObj.days;
-
-      let currentIdx = -1;
-      for (let i = 0; i < SJ_MILESTONES.length; i++) {
-        if (s >= SJ_MILESTONES[i].days) currentIdx = i;
-      }
-
-      let trackHTML = '';
-      SJ_MILESTONES.forEach((m, i) => {
-        const reached = s >= m.days;
-        const isCurrent = i === currentIdx;
-        const dotCls = isCurrent ? 'sj-dot current' : reached ? 'sj-dot reached' : 'sj-dot';
-        const dotContent = isCurrent ? m.icon : (reached ? '✓' : m.days);
-        trackHTML += `<div class="sj-step"><div class="${dotCls}">${dotContent}</div><div class="sj-step-label">${m.label}</div></div>`;
-        if (i < SJ_MILESTONES.length - 1) {
-          const passed = s >= SJ_MILESTONES[i + 1].days;
-          trackHTML += `<div class="sj-line${passed ? ' passed' : ''}"></div>`;
-        }
-      });
-
-      const nextM = SJ_MILESTONES.find(m => m.days > s);
-      const progLabel = s === 0
-        ? 'Start today to begin your streak 🔥'
-        : nextM ? `${s} day streak · ${nextM.days - s} more to reach ${nextM.label}`
-          : '🏆 Full 30-day streak! King!';
-
-      wrap.innerHTML = `<div class="streak-wrap">
-    <div class="sj-header"><span style="font-size:15px;">📊</span><span class="sj-title">Streak Journey · ${name}</span></div>
-    <div class="sj-tagline">Show up every day. The streak does the rest.</div>
-    <div class="sj-track">${trackHTML}</div>
-    <div class="sj-progress-label${s === 0 ? ' zero' : ''}">${progLabel}</div>
-  </div>`;
-    }
-
-    /* ══════════════════════════════════════════════════════════
-       DAY ARCHITECTURE
-       ══════════════════════════════════════════════════════════ */
-    function renderDayArch() {
-      const el = document.getElementById('day-arch');
-      const p = PRAYERS || { Fajr: '04:42', Dhuhr: '12:04', Asr: '15:27', Maghrib: '18:00', Isha: '19:18' };
-      const fM = toMins(p.Fajr), dhM = toMins(p.Dhuhr);
-      const asM = toMins(p.Asr), mgM = toMins(p.Maghrib), isM = toMins(p.Isha);
-
-      const suhoorStart = Math.max(0, fM - 90); // fajr - 90 min
-      const waterStart = mgM + 120;            // water window opens after nap
-
-      const pct = m => `${((Math.max(0, Math.min(1440, m)) / 1440) * 100).toFixed(2)}%`;
-
-      // ── Blocks (midnight → midnight) ──
-      const blocks = [
-        { from: 0, to: suhoorStart, label: '💧 WATER WINDOW', cls: 't-water' },
-        { from: suhoorStart, to: fM, label: '🌙 SUHOOR', cls: 't-suhoor' },
-        { from: fM, to: dhM, label: '😴 SLEEP WINDOW', cls: 't-sleep' },
-        { from: dhM, to: mgM, label: '⚡ WORK WINDOW', cls: 't-work' },
-        { from: mgM, to: waterStart, label: '🌅 RECOVERY', cls: 't-recovery' },
-        { from: waterStart, to: 1440, label: '💧 WATER WINDOW', cls: 't-water' },
-      ].filter(b => b.to > b.from);
-
-      const blocksHTML = blocks.map(b =>
-        `<div class="t-block ${b.cls}" style="left:${pct(b.from)};width:${pct(b.to - b.from)};">${b.label}</div>`
-      ).join('');
-
-      // ── Prayer markers ──
-      const markers = [
-        { mins: fM, icon: '🕌', label: 'Fajr', time: p.Fajr.split(' ')[0], color: '#F59E0B' },
-        { mins: dhM, icon: '🕌', label: 'Dhuhr', time: p.Dhuhr.split(' ')[0], color: '#F59E0B' },
-        { mins: asM, icon: '🕌', label: 'Asr', time: p.Asr.split(' ')[0], color: '#F59E0B' },
-        { mins: mgM, icon: '🌙', label: 'Iftar', time: p.Maghrib.split(' ')[0], color: '#10B981' },
-        { mins: isM, icon: '🕌', label: 'Isha', time: p.Isha.split(' ')[0], color: '#F59E0B' },
-      ];
-      const markersHTML = markers.map(m =>
-        `<div class="pm-item" style="left:${pct(m.mins)};">
-      <div class="pm-line" style="background:${m.color};"></div>
-      <div class="pm-icon">${m.icon}</div>
-      <div class="pm-label" style="color:${m.color};">${m.label}</div>
-      <div class="pm-time">${m.time}</div>
-    </div>`
-      ).join('');
-
-      const hours = [0, 3, 6, 9, 12, 15, 18, 21, 24];
-      const hourAxisHTML = hours.map(h => `<span class="h-tick">${h === 0 ? '12a' : h === 12 ? '12p' : h > 12 ? `${h - 12}p` : `${h}a`}</span>`).join('');
-
-      // ── Stats (2 boxes: Sleep = sleep+recovery, Work = work+water) ──
-      const sleepRaw = (dhM - fM) / 60;                         // Fajr → Dhuhr
-      const recovRaw = (waterStart - mgM) / 60;                  // Maghrib → water opens
-      const sleepH = (sleepRaw + recovRaw).toFixed(1);     // total rest
-
-      const workRaw = (mgM - dhM) / 60;                         // Dhuhr → Maghrib
-      const waterRaw = ((1440 - waterStart) + suhoorStart) / 60;   // water window
-      const workH = (workRaw + waterRaw).toFixed(1);      // total active
-
-      // ── Legend ──
-      const legend = [
-        { color: '#2a1a5e', label: '😴 Sleep · Recovery' },
-        { color: '#2e1515', label: '⚡ Work · Water' },
-        { color: '#0f2e1a', label: '🌙 Suhoor' },
-      ];
-      const legendHTML = legend.map(l =>
-        `<div class="arch-legend-item"><div class="leg-dot" style="background:${l.color};"></div><span>${l.label}</span></div>`
-      ).join('');
-
-      el.innerHTML = `
-    <div class="arch-context">24-hour view · midnight → midnight · Dikirnis prayer times, today</div>
-    <div class="timeline-outer">${blocksHTML}</div>
-    <div class="hour-axis">${hourAxisHTML}</div>
-    <div class="prayer-marker-row">${markersHTML}</div>
-    <div class="arch-stats" style="grid-template-columns:1fr 1fr;">
-      <div class="ss-item"><div class="ss-val">${sleepH}h</div><div class="ss-lbl">😴 Sleep · Recovery</div></div>
-      <div class="ss-item"><div class="ss-val">${workH}h</div><div class="ss-lbl">⚡ Work · Water</div></div>
-    </div>
-    <div class="arch-legend">${legendHTML}</div>
-  `;
-    }
-
-    /* ══════════════════════════════════════════════════════════
-       WORK SESSIONS
-       ══════════════════════════════════════════════════════════ */
-    function renderWork() {
-      ['growth', 'upwork'].forEach(type => {
-        const count = ST[type].sessions;
-        const log = ST[type].log || [];
-        const dotsCls = type === 'growth' ? 'done-g' : 'done-u';
-        const totalMin = count * 170; // 2h50m per session
-        const totalH = (totalMin / 60).toFixed(1);
-
-        // Session dots
-        const dotsEl = document.getElementById(`${type}-dots`);
-        if (dotsEl) {
-          const dots = Array.from({ length: count }, (_, i) =>
-            `<div class="sesh-dot ${dotsCls}" title="Session ${i + 1} · click to undo" onclick="removeSession('${type}',${i})">🔥</div>`
-          ).join('');
-          dotsEl.innerHTML = dots +
-            `<div class="sesh-dot add" title="Log a completed session" onclick="startSession('${type}')">+</div>`;
-        }
-
-        // Totals
-        const totalEl = document.getElementById(`${type}-total`);
-        if (totalEl) {
-          const colorCls = type === 'growth' ? 'c-g' : 'c-u';
-          totalEl.innerHTML = count === 0
-            ? `No sessions yet today`
-            : `<span class="${colorCls}">${count} session${count !== 1 ? 's' : ''}</span> · <span class="${colorCls}">${totalH}h</span> deep work`;
-        }
-
-        // Log (last 4)
-        const logEl = document.getElementById(`${type}-log`);
-        if (logEl) {
-          logEl.innerHTML = log.slice(-4).reverse().map(e =>
-            `<div class="wt-log-item"><span>▶ Started</span><span>${e.time}</span></div>`
-          ).join('');
-        }
-      });
-    }
-
-    function removeSession(type, idx) {
-      if (ST[type].sessions <= 0) return;
-      ST[type].sessions--;
-      ST[type].log.splice(idx, 1);
-      saveState(); renderWork();
-      showToast('Session removed');
-    }
-
-    function startSession(type) {
-      const now = new Date();
-      const t = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-      ST[type].sessions++;
-      ST[type].log.push({ time: t });
-      if (!ST.workStreakBumped) { bumpStreak(WORK_STREAK, WORK_SK); ST.workStreakBumped = true; }
-      saveState();
-      renderWork();
-
-      // Calculate ramadan day for payload
-      const today = new Date(); today.setHours(0, 0, 0, 0);
-      const start = new Date(CFG.ramadanStart); start.setHours(0, 0, 0, 0);
-      const ramDay = Math.min(Math.max(Math.floor((today - start) / 864e5) + 1, 1), CFG.totalDays);
-      const totalToday = ST.growth.sessions + ST.upwork.sessions;
-
-      const payload = {
-        sessionNum: ST[type].sessions,
-        sessionType: type === 'growth' ? 'Growth Operating' : 'Upwork',
-        startTime: t,
-        ramadanDay: ramDay,
-        streak: WORK_STREAK.days,
-        totalToday
-      };
-
-      // Use n8n webhook if set, else direct Slack
-      const webhookUrl = CFG.n8nWorkWebhook || CFG.slackWebhook;
-      fetch(webhookUrl, {
-        method: 'POST', mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(
-          CFG.n8nWorkWebhook ? payload : { text: `⚙️ ${payload.sessionType} session #${payload.sessionNum} · ${t} 🔥 ${WORK_STREAK.days} day streak` }
-        )
-      }).catch(() => { });
-
-      showToast(`▶ ${type === 'growth' ? 'Growth' : 'Upwork'} session started`);
-    }
-
+    function closeAddMed() { document.getElementById('med-modal-root').innerHTML = '' }
+    function saveMed() { const name = document.getElementById('mm-name').value.trim(); if (!name) { showToast('Enter a name'); return } const med = { id: 'med-' + Date.now(), name, type: document.getElementById('mm-type').value, dose: document.getElementById('mm-dose').value.trim(), anchor: document.getElementById('mm-anchor').value, taken: false }; ST.meds.push(med); saveState(); renderPills(); closeAddMed(); showToast(`💊 ${name} added`) }
+    /* ═══ WORK ═══ */
+    function renderWork() { ['growth', 'upwork'].forEach(type => { const c = ST[type].sessions; const log = ST[type].log || []; const dc = type === 'growth' ? 'done-g' : 'done-u'; const tH = (c * 170 / 60).toFixed(1); const dE = document.getElementById(`${type}-dots`); if (dE) { dE.innerHTML = Array.from({ length: c }, (_, i) => `<div class="sesh-dot ${dc}" title="Session ${i + 1}" onclick="removeSession('${type}',${i})">🔥</div>`).join('') + `<div class="sesh-dot add" onclick="startSession('${type}')">+</div>` } const tE = document.getElementById(`${type}-total`); if (tE) { const cc = type === 'growth' ? 'c-g' : 'c-u'; tE.innerHTML = c === 0 ? 'No sessions yet today' : `<span class="${cc}">${c} session${c !== 1 ? 's' : ''}</span> · <span class="${cc}">${tH}h</span> deep work` } const lE = document.getElementById(`${type}-log`); if (lE) lE.innerHTML = log.slice(-4).reverse().map(e => `<div class="wt-log-item"><span>▶ Started</span><span>${e.time}</span></div>`).join('') }) }
+    function removeSession(type, idx) { if (ST[type].sessions <= 0) return; ST[type].sessions--; ST[type].log.splice(idx, 1); saveState(); renderWork(); showToast('Session removed') }
+    function startSession(type) { const t = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }); ST[type].sessions++; ST[type].log.push({ time: t }); saveState(); renderWork(); const wh = CFG.n8nWorkWebhook || CFG.slackWebhook; if (wh) fetch(wh, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionType: type === 'growth' ? 'Growth' : 'Upwork', startTime: t }) }).catch(() => { }); showToast(`▶ ${type === 'growth' ? 'Growth' : 'Upwork'} session started`) }
     document.getElementById('growth-btn').addEventListener('click', () => startSession('growth'));
     document.getElementById('upwork-btn').addEventListener('click', () => startSession('upwork'));
-
-    /* ══════════════════════════════════════════════════════════
-       QUOTES — 30 Principles
-       ══════════════════════════════════════════════════════════ */
-    const QUOTES = [
-      { num: 1, html: `If you want to introduce value:<br><br>• Prove it.&nbsp; • Document it.&nbsp; • Show it.`, tags: ['Value', 'Execution'] },
-      { num: 2, html: `If you are everything to everyone, you are <strong>nothing to anyone</strong>.<br>Stand for something. Pick your ground.`, tags: ['Identity', 'Focus'] },
-      { num: 3, html: `<strong>Copywriting</strong> is using words to persuade someone to take action or think a certain way.`, tags: ['Skill', 'Copywriting'] },
-      { num: 4, html: `Focus on <strong>monthly income</strong>, not your bank balance.<br>Reinvest the extra money so your income keeps growing.`, tags: ['Money', 'Mindset'] },
-      { num: 5, html: `The basics matter most:<br>Show up. Stay consistent. Learn real skills before chasing big moves.`, tags: ['Discipline', 'Consistency'] },
-      { num: 6, html: `Failure isn't starting over.<br>It's just another <strong>experience point</strong>.`, tags: ['Resilience', 'Growth'] },
-      { num: 7, html: `The solution in two lines:<br><br>• Admit your mistake.<br>• Use what you have and keep going.`, tags: ['Accountability', 'Action'] },
-      { num: 8, html: `The normal phase:<br>Work <strong>6 days a week, 12 hours a day</strong>.<br>You have energy now — not experience.`, tags: ['Work Ethic', 'Phase'] },
-      { num: 9, html: `When you're broke, live <strong>defensively</strong>.<br>Cut your spending to the minimum so you can bet on yourself.`, tags: ['Finance', 'Survival Mode'] },
-      { num: 10, html: `If you're broke:<br><br>• No restaurants&nbsp; • No new clothes&nbsp; • Only free social events`, tags: ['Finance', 'Discipline'] },
-      { num: 11, html: `Be patient with results.<br>Be impatient with action.<br><strong>Movement cures anxiety.</strong>`, tags: ['Mindset', 'Action'] },
-      { num: 12, html: `Build a <strong>cash reserve</strong> so you can move from survival mode to growth mode.`, tags: ['Finance', 'Strategy'] },
-      { num: 13, html: `The golden rule:<br>Start. Learn. Don't quit.<br>The game is won by the <strong>last person still standing</strong>.`, tags: ['Persistence', 'Mindset'] },
-      { num: 14, html: `"Fake it till you make it" is wrong.<br>The real rule: <strong>do the work before you talk about it.</strong>`, tags: ['Integrity', 'Work Ethic'] },
-      { num: 15, html: `Content alone won't make you successful.<br><strong>Proof and context behind it</strong> are what convince people.`, tags: ['Marketing', 'Trust'] },
-      { num: 16, html: `If someone is ahead of you, <strong>double your effort</strong> until you catch them — and pass them.`, tags: ['Competition', 'Drive'] },
-      { num: 17, html: `Don't play by other people's rules.<br><strong>Set your own.</strong>`, tags: ['Independence', 'Mindset'] },
-      { num: 18, html: `Choose the decision that creates the <strong>better story</strong>.<br>Nobody regrets the bold stories.`, tags: ['Courage', 'Decision-Making'] },
-      { num: 19, html: `Long routines and complicated <strong>morning routines</strong> are often distractions.<br>More work produces more results.`, tags: ['Productivity', 'Focus'] },
-      { num: 20, html: `Identity is mostly a lie.<br>What you <strong>do repeatedly</strong> is who you become.`, tags: ['Identity', 'Habits'] },
-      { num: 21, html: `Passive income is mostly a myth.<br>Everything costs time.<br>Focus on <strong>how much you earn per hour</strong>.`, tags: ['Finance', 'Clarity'] },
-      { num: 22, html: `If you can't afford to buy it <strong>twice</strong>, don't buy it once.<br>Always think in <strong>hours of work</strong>, not price.`, tags: ['Finance', 'Discipline'] },
-      { num: 23, html: `Check your <strong>bank account before social media</strong>.<br>What gets measured gets improved.`, tags: ['Habits', 'Finance'] },
-      { num: 24, html: `Buy <strong>time</strong>, not things.<br>Delegate anything that costs less than your hourly rate.`, tags: ['Leverage', 'Time'] },
-      { num: 25, html: `Real wealth isn't money or assets.<br>It's <strong>education and skills</strong>.<br>A skilled person doesn't need inheritance.`, tags: ['Wealth', 'Skills'] },
-      { num: 26, html: `Focus is the number of things you say <strong>no</strong> to.<br>Success in one thing beats <strong>seven fake income streams</strong>.`, tags: ['Focus', 'Strategy'] },
-      { num: 27, html: `The real work starts <strong>after motivation disappears</strong>.`, tags: ['Discipline', 'Consistency'] },
-      { num: 28, html: `Don't follow your passion.<br>Follow the thing you're <strong>good at and people are willing to pay for</strong>.`, tags: ['Career', 'Clarity'] },
-      { num: 29, html: `Don't focus on networking early.<br>Focus on getting good at your work.<br>When you succeed, <strong>people will come to you</strong>.`, tags: ['Growth', 'Skill-First'] },
-      { num: 30, html: `The person who <strong>shows up every day</strong> is very hard to beat.`, tags: ['Consistency', 'Discipline'] },
-    ];
-
-    let quoteIdx = 0;
-    let quoteAnchored = false;
-
-    function renderQuote() {
-      const today = new Date(); today.setHours(0, 0, 0, 0);
-      const start = new Date(CFG.ramadanStart); start.setHours(0, 0, 0, 0);
-      const ramDay = Math.min(Math.max(Math.floor((today - start) / 864e5) + 1, 1), 30);
-      if (!quoteAnchored) { quoteIdx = (ramDay - 1); quoteAnchored = true; } // anchor to Ramadan day once
-      const q = QUOTES[quoteIdx % 30];
-      const qtEl = document.getElementById('qtext'); if (qtEl) qtEl.innerHTML = q.html;
-      const qnEl = document.getElementById('qnum'); if (qnEl) qnEl.textContent = `${q.num} / 30`;
-      const tgEl = document.getElementById('qtags'); if (tgEl) tgEl.innerHTML = q.tags.map(t => `<span class="qtag">${t}</span>`).join('');
+    /* ═══ YOUR WEEK ═══ */
+    let weekOff = 0, selDay = null;
+    function getWeekBounds(off = 0) { const ref = new Date(TODAY + 'T12:00:00'); ref.setDate(ref.getDate() + (off * 7)); const dow = ref.getDay(); const mon = new Date(ref); mon.setDate(ref.getDate() - ((dow + 6) % 7)); const days = []; for (let i = 0; i < 7; i++) { const d = new Date(mon); d.setDate(mon.getDate() + i); days.push(d.toISOString().slice(0, 10)) } return { days, monStr: days[0], sunStr: days[6] } }
+    function renderWeekSection() {
+      const wk = getWeekBounds(weekOff); const td = new Date(TODAY + 'T12:00:00');
+      document.getElementById('week-nav').innerHTML = `<button class="week-nav-btn" onclick="changeWeek(-1)">‹</button><div class="week-nav-label">${shortDate(wk.monStr)} — ${shortDate(wk.sunStr)}</div><button class="week-nav-btn" onclick="changeWeek(1)" ${weekOff >= 0 ? 'disabled' : ''}>›</button>`;
+      document.getElementById('week-strip').innerHTML = wk.days.map(d => { const dd = new Date(d + 'T12:00:00'); const isFut = dd > td; const isT = d === TODAY; const st = loadDayState(d); const sc = st ? calcScores(st) : null; const pct = sc ? sc.overall : 0; const bc = pct >= 70 ? '#10B981' : pct >= 40 ? '#F59E0B' : '#EF4444'; const sel = selDay === d; return `<div class="ws-day ${isT ? 'today' : ''} ${sel ? 'selected' : ''} ${isFut ? 'future' : ''}" onclick="${isFut ? '' : `selectDay('${d}')`}"><div class="ws-day-name">${shortDay(d)}</div><div class="ws-day-num">${new Date(d + 'T12:00:00').getDate()}</div><div class="ws-day-bar"><div class="ws-day-bar-fill" style="width:${isFut ? 0 : pct}%;background:${bc}"></div></div><div class="ws-day-pct" style="color:${isFut ? 'var(--muted)' : bc}">${isFut ? '—' : pct + '%'}</div></div>` }).join('');
+      renderDayDetail(); renderWeekTable()
     }
-    function prevQuote() { quoteIdx = (quoteIdx - 1 + 30) % 30; renderQuote(); }
-    function nextQuote() { quoteIdx = (quoteIdx + 1) % 30; renderQuote(); }
-
-    /* ══════════════════════════════════════════════════════════
-       HEADER
-       ══════════════════════════════════════════════════════════ */
-    function renderHeader() {
-      document.getElementById('h-date').textContent = friendlyDate();
+    function changeWeek(dir) { weekOff += dir; if (weekOff > 0) weekOff = 0; selDay = null; renderWeekSection() }
+    function selectDay(d) { selDay = selDay === d ? null : d; renderWeekSection() }
+    function renderDayDetail() { const c = document.getElementById('day-detail-container'); if (!selDay) { c.innerHTML = ''; return } const st = loadDayState(selDay); if (!st) { c.innerHTML = `<div class="day-detail"><div class="dd-header"><span>${shortDate(selDay)} — No data</span><span class="dd-close" onclick="selectDay('${selDay}')">✕</span></div></div>`; return } const sc = calcScores(st); const w = getWeight(selDay); const bd = BODY_ITEMS.filter(it => st.body && st.body[it.id]).length; const cd = (st.cups || []).filter(Boolean).length; const meds = st.meds || []; const md = meds.filter(m => m.taken).length; const gS = st.growth ? st.growth.sessions : 0, uS = st.upwork ? st.upwork.sessions : 0; c.innerHTML = `<div class="day-detail"><div class="dd-header"><span>📊 ${shortDate(selDay)} · Overall ${sc.overall}%</span><span class="dd-close" onclick="selectDay('${selDay}')">✕</span></div><div class="dd-grid"><div class="dd-item"><div class="dd-item-label">Health</div><div class="dd-item-val" style="color:var(--green)">${bd}/7 · ${sc.health}%</div></div><div class="dd-item"><div class="dd-item-label">Water</div><div class="dd-item-val" style="color:var(--blue)">${cd}/8 · ${sc.water}%</div></div><div class="dd-item"><div class="dd-item-label">Medicine</div><div class="dd-item-val" style="color:var(--purple)">${md}/${meds.length} · ${sc.medicine}%</div></div><div class="dd-item"><div class="dd-item-label">Work</div><div class="dd-item-val" style="color:var(--primary)">${gS}G + ${uS}U · ${sc.work}%</div></div><div class="dd-item"><div class="dd-item-label">Weight</div><div class="dd-item-val">${w ? w + ' kg' : '—'}</div></div><div class="dd-item"><div class="dd-item-label">Deep Hours</div><div class="dd-item-val">${((gS + uS) * 170 / 60).toFixed(1)}h</div></div></div></div>` }
+    function renderWeekTable() {
+      // Determine which month the current week view is in (use the Monday of viewed week)
+      const wk = getWeekBounds(weekOff); const refDate = new Date(wk.monStr + 'T12:00:00');
+      const yr = refDate.getFullYear(), mo = refDate.getMonth(); const mName = refDate.toLocaleDateString('en-US', { month: 'long' });
+      const lastD = new Date(yr, mo + 1, 0).getDate(); const todayD = new Date(TODAY + 'T12:00:00');
+      const weeks = []; for (let s = 1; s <= lastD; s += 7) { const e = Math.min(s + 6, lastD); const days = []; for (let d = s; d <= e; d++)days.push(`${yr}-${String(mo + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`); weeks.push({ label: `${mName.slice(0, 3)} ${s}–${e}`, days }) }
+      let html = `<thead><tr><th style="text-align:left">${mName}</th><th>Health</th><th>Water</th><th>Work</th><th>Wt Δ</th><th>Hrs</th></tr></thead><tbody>`;
+      weeks.forEach(w => { const past = w.days.filter(d => new Date(d + 'T12:00:00') <= todayD); const isCur = past.length > 0 && past.length < w.days.length; if (past.length === 0) { html += `<tr><td class="wt-label-cell">${w.label}</td><td class="wt-empty">—</td><td class="wt-empty">—</td><td class="wt-empty">—</td><td class="wt-empty">—</td><td class="wt-empty">—</td></tr>`; return } let hS = 0, wS = 0, wkS = 0, cnt = 0, tS = 0, fW = null, lW = null; past.forEach(d => { const st = loadDayState(d); if (st) { const sc = calcScores(st); hS += sc.health; wS += sc.water; wkS += sc.work; cnt++; tS += (st.growth ? st.growth.sessions : 0) + (st.upwork ? st.upwork.sessions : 0) } const wt = getWeight(d); if (wt) { if (!fW) fW = wt; lW = wt } }); const aH = cnt ? Math.round(hS / cnt) : 0, aW = cnt ? Math.round(wS / cnt) : 0, aWk = cnt ? Math.round(wkS / cnt) : 0; const wd = (fW && lW) ? (lW - fW).toFixed(1) : null; const dH = (tS * 170 / 60).toFixed(1); const pc = v => v >= 70 ? 'wt-pct-good' : v >= 40 ? 'wt-pct-ok' : 'wt-pct-bad'; html += `<tr class="${isCur ? 'wt-current' : ''}"><td class="wt-label-cell">${w.label}</td><td class="${pc(aH)}">${aH}%</td><td class="${pc(aW)}">${aW}%</td><td class="${pc(aWk)}">${aWk}%</td><td style="color:${wd && wd < 0 ? 'var(--green)' : wd > 0 ? 'var(--red)' : 'var(--muted)'}">${wd ? (wd > 0 ? '+' : '') + wd + 'kg' : '—'}</td><td>${dH}h</td></tr>` });
+      html += '</tbody>'; document.getElementById('week-table').innerHTML = html;
+      document.getElementById('month-grid-container').innerHTML = `<button class="view-month-btn" onclick="toggleMonthGrid()">📊 View Full Month</button><div id="month-grid" style="display:none"></div>`
     }
-
-    /* ══════════════════════════════════════════════════════════
-       TOAST
-       ══════════════════════════════════════════════════════════ */
-    let toastTimer;
-    function showToast(msg) {
-      const t = document.getElementById('toast');
-      t.innerHTML = msg; t.classList.add('show');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+    function toggleMonthGrid() { const g = document.getElementById('month-grid'); if (g.style.display === 'none') { g.style.display = 'block'; renderMonthGrid() } else g.style.display = 'none' }
+    function renderMonthGrid() {
+      const wk = getWeekBounds(weekOff); const refDate = new Date(wk.monStr + 'T12:00:00');
+      const yr = refDate.getFullYear(), mo = refDate.getMonth(); const lastD = new Date(yr, mo + 1, 0).getDate(); const todayD = new Date(TODAY + 'T12:00:00'); const mName = refDate.toLocaleDateString('en-US', { month: 'long' });
+      let h = `<div class="month-list">`;
+      for (let d = 1; d <= lastD; d++) {
+        const ds = `${yr}-${String(mo + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`; const dd = new Date(ds + 'T12:00:00'); const isFut = dd > todayD; const st = loadDayState(ds); const sc = st ? calcScores(st) : null; const pct = sc ? sc.overall : 0; const bc = isFut ? 'var(--border)' : pct >= 70 ? 'var(--green)' : pct >= 40 ? 'var(--primary)' : 'var(--red)';
+        h += `<div class="ml-row"><div class="ml-day">${shortDay(ds)} ${d}</div><div class="ml-bar"><div class="ml-bar-fill" style="width:${isFut ? 0 : pct}%;background:${bc}"></div></div><div class="ml-pct" style="color:${isFut ? 'var(--muted)' : bc}">${isFut ? '—' : pct + '%'}</div></div>`
+      }
+      h += '</div>'; document.getElementById('month-grid').innerHTML = h
     }
-
-    /* ══════════════════════════════════════════════════════════
-       TICKS
-       ══════════════════════════════════════════════════════════ */
-    setInterval(() => renderPrayers(), 1000);           // 1s tick for countdown seconds
-    setInterval(() => { renderCups(); renderPills(); }, 30000); // 30s tick for cup/pill times
-
-    /* ══════════════════════════════════════════════════════════
-       INIT
-       ══════════════════════════════════════════════════════════ */
+    /* ═══ DAY ARCHITECTURE ═══ */
+    function renderDayArch() {
+      const el = document.getElementById('day-arch'); const p = PRAYERS || { Fajr: '04:42', Dhuhr: '12:04', Asr: '15:27', Maghrib: '18:00', Isha: '19:18' };
+      const fM = toMins(p.Fajr), dhM = toMins(p.Dhuhr), asM = toMins(p.Asr), mgM = toMins(p.Maghrib), isM = toMins(p.Isha);
+      const napEnd = mgM + 90; const waterStart = mgM + 120; const suhoorStart = Math.max(0, fM - 90);
+      const pct = m => `${((Math.max(0, Math.min(1440, m)) / 1440) * 100).toFixed(2)}%`;
+      // 3 windows: Sleep, Work (all awake time), Water (info overlay on work)
+      const blocks = [
+        { from: 0, to: suhoorStart, label: '⚡ WORK', cls: 't-work' },
+        { from: suhoorStart, to: fM, label: '⚡ WORK', cls: 't-work' },
+        { from: fM, to: dhM, label: '😴 SLEEP', cls: 't-sleep' },
+        { from: dhM, to: mgM, label: '⚡ WORK', cls: 't-work' },
+        { from: mgM, to: napEnd, label: '😴 NAP', cls: 't-sleep' },
+        { from: napEnd, to: 1440, label: '⚡ WORK', cls: 't-work' }
+      ].filter(b => b.to > b.from);
+      // Water overlay markers
+      const waterBlocks = [{ from: waterStart, to: Math.min(1440, waterStart + 8 * 50), label: '💧', cls: 't-water' }, { from: 0, to: suhoorStart, label: '💧', cls: 't-water' }];
+      const bHTML = blocks.map(b => `<div class="t-block ${b.cls}" style="left:${pct(b.from)};width:${pct(b.to - b.from)}">${b.label}</div>`).join('');
+      const markers = [{ mins: fM, icon: '🕌', label: 'Fajr', time: p.Fajr.split(' ')[0], color: '#F59E0B' }, { mins: dhM, icon: '🕌', label: 'Dhuhr', time: p.Dhuhr.split(' ')[0], color: '#F59E0B' }, { mins: asM, icon: '🕌', label: 'Asr', time: p.Asr.split(' ')[0], color: '#F59E0B' }, { mins: mgM, icon: '🌙', label: 'Iftar', time: p.Maghrib.split(' ')[0], color: '#10B981' }, { mins: isM, icon: '🕌', label: 'Isha', time: p.Isha.split(' ')[0], color: '#F59E0B' }];
+      const mHTML = markers.map(m => `<div class="pm-item" style="left:${pct(m.mins)}"><div class="pm-line" style="background:${m.color}"></div><div class="pm-icon">${m.icon}</div><div class="pm-label" style="color:${m.color}">${m.label}</div><div class="pm-time">${m.time}</div></div>`).join('');
+      const hrs = [0, 3, 6, 9, 12, 15, 18, 21, 24]; const hAx = hrs.map(h => `<span>${h === 0 ? '12a' : h === 12 ? '12p' : h > 12 ? `${h - 12}p` : `${h}a`}</span>`).join('');
+      const sleepH = ((dhM - fM) / 60 + 1.5).toFixed(1);
+      const workH = (24 - parseFloat(sleepH)).toFixed(1);
+      const waterH = (((1440 - waterStart) + suhoorStart) / 60).toFixed(1);
+      el.innerHTML = `<div class="arch-context">24-hour view · midnight → midnight · Dikirnis prayer times</div><div class="timeline-outer">${bHTML}</div><div class="hour-axis">${hAx}</div><div class="prayer-marker-row">${mHTML}</div><div class="arch-stats"><div class="ss-item"><div class="ss-val">${sleepH}h</div><div class="ss-lbl">😴 Sleep Window</div></div><div class="ss-item"><div class="ss-val">${workH}h</div><div class="ss-lbl">⚡ Work Window</div></div><div class="ss-item"><div class="ss-val">${waterH}h</div><div class="ss-lbl">💧 Water Window</div></div></div><div class="arch-legend"><div class="arch-legend-item"><div class="leg-dot" style="background:#2a1a5e"></div><span>😴 Sleep (inc. nap)</span></div><div class="arch-legend-item"><div class="leg-dot" style="background:#2e1515"></div><span>⚡ Work (all awake time)</span></div><div class="arch-legend-item"><div class="leg-dot" style="background:#0f2e1a"></div><span>💧 Water (within work)</span></div></div>`
+    }
+    /* ═══ QUOTES ═══ */
+    const QUOTES = [{ num: 1, html: 'If you want to introduce value:<br><br>• Prove it.&nbsp; • Document it.&nbsp; • Show it.', tags: ['Value', 'Execution'] }, { num: 2, html: 'If you are everything to everyone, you are <strong>nothing to anyone</strong>.<br>Stand for something. Pick your ground.', tags: ['Identity', 'Focus'] }, { num: 3, html: '<strong>Copywriting</strong> is using words to persuade someone to take action or think a certain way.', tags: ['Skill', 'Copywriting'] }, { num: 4, html: 'Focus on <strong>monthly income</strong>, not your bank balance.<br>Reinvest the extra money so your income keeps growing.', tags: ['Money', 'Mindset'] }, { num: 5, html: 'The basics matter most:<br>Show up. Stay consistent. Learn real skills before chasing big moves.', tags: ['Discipline', 'Consistency'] }, { num: 6, html: "Failure isn't starting over.<br>It's just another <strong>experience point</strong>.", tags: ['Resilience', 'Growth'] }, { num: 7, html: 'The solution in two lines:<br><br>• Admit your mistake.<br>• Use what you have and keep going.', tags: ['Accountability', 'Action'] }, { num: 8, html: 'The normal phase:<br>Work <strong>6 days a week, 12 hours a day</strong>.<br>You have energy now — not experience.', tags: ['Work Ethic', 'Phase'] }, { num: 9, html: "When you're broke, live <strong>defensively</strong>.<br>Cut your spending to the minimum so you can bet on yourself.", tags: ['Finance', 'Survival Mode'] }, { num: 10, html: "If you're broke:<br><br>• No restaurants&nbsp; • No new clothes&nbsp; • Only free social events", tags: ['Finance', 'Discipline'] }, { num: 11, html: 'Be patient with results.<br>Be impatient with action.<br><strong>Movement cures anxiety.</strong>', tags: ['Mindset', 'Action'] }, { num: 12, html: 'Build a <strong>cash reserve</strong> so you can move from survival mode to growth mode.', tags: ['Finance', 'Strategy'] }, { num: 13, html: "The golden rule:<br>Start. Learn. Don't quit.<br>The game is won by the <strong>last person still standing</strong>.", tags: ['Persistence', 'Mindset'] }, { num: 14, html: '"Fake it till you make it" is wrong.<br>The real rule: <strong>do the work before you talk about it.</strong>', tags: ['Integrity', 'Work Ethic'] }, { num: 15, html: "Content alone won't make you successful.<br><strong>Proof and context behind it</strong> are what convince people.", tags: ['Marketing', 'Trust'] }, { num: 16, html: 'If someone is ahead of you, <strong>double your effort</strong> until you catch them — and pass them.', tags: ['Competition', 'Drive'] }, { num: 17, html: "Don't play by other people's rules.<br><strong>Set your own.</strong>", tags: ['Independence', 'Mindset'] }, { num: 18, html: 'Choose the decision that creates the <strong>better story</strong>.<br>Nobody regrets the bold stories.', tags: ['Courage', 'Decision-Making'] }, { num: 19, html: 'Long routines and complicated <strong>morning routines</strong> are often distractions.<br>More work produces more results.', tags: ['Productivity', 'Focus'] }, { num: 20, html: 'Identity is mostly a lie.<br>What you <strong>do repeatedly</strong> is who you become.', tags: ['Identity', 'Habits'] }, { num: 21, html: 'Passive income is mostly a myth.<br>Everything costs time.<br>Focus on <strong>how much you earn per hour</strong>.', tags: ['Finance', 'Clarity'] }, { num: 22, html: "If you can't afford to buy it <strong>twice</strong>, don't buy it once.<br>Always think in <strong>hours of work</strong>, not price.", tags: ['Finance', 'Discipline'] }, { num: 23, html: 'Check your <strong>bank account before social media</strong>.<br>What gets measured gets improved.', tags: ['Habits', 'Finance'] }, { num: 24, html: 'Buy <strong>time</strong>, not things.<br>Delegate anything that costs less than your hourly rate.', tags: ['Leverage', 'Time'] }, { num: 25, html: "Real wealth isn't money or assets.<br>It's <strong>education and skills</strong>.<br>A skilled person doesn't need inheritance.", tags: ['Wealth', 'Skills'] }, { num: 26, html: 'Focus is the number of things you say <strong>no</strong> to.<br>Success in one thing beats <strong>seven fake income streams</strong>.', tags: ['Focus', 'Strategy'] }, { num: 27, html: 'The real work starts <strong>after motivation disappears</strong>.', tags: ['Discipline', 'Consistency'] }, { num: 28, html: "Don't follow your passion.<br>Follow the thing you're <strong>good at and people are willing to pay for</strong>.", tags: ['Career', 'Clarity'] }, { num: 29, html: "Don't focus on networking early.<br>Focus on getting good at your work.<br>When you succeed, <strong>people will come to you</strong>.", tags: ['Growth', 'Skill-First'] }, { num: 30, html: 'The person who <strong>shows up every day</strong> is very hard to beat.', tags: ['Consistency', 'Discipline'] }];
+    let quoteIdx = 0, quoteAnchored = false;
+    function renderQuote() { const today = new Date(); today.setHours(0, 0, 0, 0); const start = new Date(CFG.ramadanStart); start.setHours(0, 0, 0, 0); const rd = Math.min(Math.max(Math.floor((today - start) / 864e5) + 1, 1), 30); if (!quoteAnchored) { quoteIdx = rd - 1; quoteAnchored = true } const q = QUOTES[quoteIdx % 30]; document.getElementById('qtext').innerHTML = q.html; document.getElementById('qnum').textContent = `${q.num} / 30`; document.getElementById('qtags').innerHTML = q.tags.map(t => `<span class="qtag">${t}</span>`).join('') }
+    function prevQuote() { quoteIdx = (quoteIdx - 1 + 30) % 30; renderQuote() }
+    function nextQuote() { quoteIdx = (quoteIdx + 1) % 30; renderQuote() }
+    function renderHeader() { document.getElementById('h-date').textContent = friendlyDate() }
+    let toastTimer; function showToast(msg) { const t = document.getElementById('toast'); t.innerHTML = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2200) }
+    setInterval(() => renderPrayers(), 1000);
+    setInterval(() => { renderCups(); renderPills() }, 30000);
+    /* ═══ INIT ═══ */
     async function init() {
-      renderHeader();
-      renderProgress();
-      renderBody();
-      renderCups();
-      renderWork();
-      renderHealthJourney();
-      renderQuote();
+      showLoader();
+      seedData(); refreshToday(); ST = loadState();
+      renderHeader(); renderScoreStrip(); renderWeight(); renderProgress(); renderBody(); renderCups(); renderWork(); renderQuote(); renderWeekSection();
       await loadPrayers();
-      renderPrayers();
-      renderCups();
-      renderPills();
-      renderProgress(); // re-render to pick up hijri month name
-      renderDayArch();
-      loadTomorrowFajr(); // async — will show Fajr strip when ready
+      renderPrayers(); renderCups(); renderPills(); renderProgress(); renderDayArch();
+      loadTomorrowFajr();
+      hideLoader();
     }
-
-    /* ══════════════════════════════════════════════════════════
-       AUTH STATE LISTENER
-       ══════════════════════════════════════════════════════════ */
+    /* ═══ AUTH ═══ */
     const ALLOWED_UID = 'vnJbfZMnIdRlddIwZDptqANz1SK2';
-
+    showLoader();
     auth.onAuthStateChanged(user => {
       if (user) {
-        if (user.uid !== ALLOWED_UID) {
-          auth.signOut();
-          document.getElementById('login-screen').style.display = 'flex';
-          document.getElementById('app').style.display = 'none';
-          document.getElementById('login-error').style.display = 'block';
-          return;
-        }
+        if (user.uid !== ALLOWED_UID) { auth.signOut(); document.getElementById('login-screen').style.display = 'flex'; document.getElementById('app').style.display = 'none'; document.getElementById('login-error').style.display = 'block'; hideLoader(); return }
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app').style.display = 'block';
-        init(); // ← THIS is the fix — run init AFTER auth confirms
+        init();
       } else {
         document.getElementById('login-screen').style.display = 'flex';
         document.getElementById('app').style.display = 'none';
+        hideLoader();
       }
     });
   </script>
